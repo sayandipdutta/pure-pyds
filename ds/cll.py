@@ -270,7 +270,41 @@ class CLList(MutableSequence[T]):
             except IndexError:
                 raise IndexError(f"{index=} out of range, for CLList of {len(self)=} items")
         
+        start, stop, step = index.indices(self.size)
+        
+        if stop == 0:
+            raise TypeError(f"step cannot be zero") from None
+        if not all(isinstance(p, int) for p in (start, stop, step)):
+            raise TypeError(
+                f"{index=} is not a valid slice for CLList. "
+                "Must be int or support __index__()"
+            ) from None
+
+        return self.__class__.from_iterable(
+                self[i] for i in range(start, stop, step)
+            )
+        
+
+    @overload
+    def __setitem__(self, index: int, value: T):
+        """If index is int, set item at given index to value.
+        If index is out of range, raise IndexError.
+        """
+
+    @overload
+    def __setitem__(self, index: slice, value: Iterable[T]):
+        """If index is slice, set items in given range to values.
+        If extended slice length is greater than value length, raise ValueError.
+        """
+            
+    def __setitem__(self, index: int | slice, value: T | Iterable[T]):
+        if isinstance(index, int):
+            value = cast(T, value)
+            try:
+                self.peek(index, node=True, errors='raise').value = value
+            except IndexError:
+                raise IndexError(f"{index=} out of range, for CLList of {len(self)=} items")
+        value = cast(T, value)
         index = cast(slice, index)      # @TODO: remove cast if possible
         start, stop, step = index.indices(self.size)
-        return self.__class__.from_iterable(islice(self, start, stop, step))
-
+        
