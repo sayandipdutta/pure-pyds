@@ -1,7 +1,14 @@
 from collections.abc import MutableSequence
-from itertools import islice
-# from dataclasses import dataclass, field
-from typing import Generic, Iterable, Iterator, Literal, Optional, TypeVar, cast, overload
+from typing import (
+    Generic, 
+    Iterable, 
+    Iterator, 
+    Literal, 
+    TypeVar, 
+    overload
+)
+
+from .validate import _slice_validation_error
 
 T = TypeVar("T")
 
@@ -330,11 +337,9 @@ class CLList(MutableSequence[T]):
                 )
         
         # slice
-        if not _valid_integer_slice(index):
-            raise TypeError(
-                f"{index=} is not a valid slice item for CLList "
-                "slice items must be int or support __index__()."
-            ) from None
+        err = _slice_validation_error(index)
+        if err is not None:
+            raise ValueError(err) from None
 
         start, stop, step = index.indices(self.size)
         
@@ -352,11 +357,9 @@ class CLList(MutableSequence[T]):
                 raise exc from None
 
         # handle slice
-        if not _valid_integer_slice(index):
-            raise TypeError(
-                f"{index=} is not a valid slice item for CLList "
-                "slice items must be int or support __index__()."
-            ) from None
+        err = _slice_validation_error(index)
+        if err is not None:
+            raise ValueError(err) from None
 
         points = range(*index.indices(self.size))
         slice_size = len(points)
