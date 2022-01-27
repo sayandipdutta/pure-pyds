@@ -1,4 +1,5 @@
 from collections.abc import MutableSequence
+from dataclasses import dataclass
 from typing import (
     Generic, 
     Iterable, 
@@ -13,26 +14,27 @@ from .validate import _slice_validation_error
 
 T = TypeVar("T")
 
-
 class Node(Generic[T]):
     __slots__ = ('value', 'left', 'right')
 
-    def __init__(self, value: T):
+    def __init__(self, value: T, left: 'Node[T]' = None, right: 'Node[T]' = None):
         self.value: T = value
-        self.left: 'Node[T]' = self
-        self.right: 'Node[T]' = self
+        self.left: 'Node[T]' = self if left is None else left
+        self.right: 'Node[T]' = self if right is None else right
 
-    @classmethod
-    def with_node(
-            cls, 
-            value: T, 
-            *, 
-            left: 'Node[T]', 
-            right: 'Node[T]'
-        ) -> 'Node[T]':
-        self = cls(value)
-        self.left, self.right = left, right
-        return self
+    def __rich_repr__(self):
+        yield 'value', self.value
+        yield 'left', self.__class__
+        yield 'right', self.__class__
+
+    __rich_repr__.angular = True    # type: ignore
+
+    def __repr__(self):
+        return (
+            f'{self.__class__.__name__}('
+            + ', '.join(f'{k}={v!r}' for k, v in self.__rich_repr__())
+            + ')'
+        )
 
 
 class CLList(MutableSequence[T]):
@@ -249,7 +251,7 @@ class CLList(MutableSequence[T]):
             return
         
         ith_node = self.peek(index, node=True, errors='raise')
-        ith_node.left.right = Node.with_node(
+        ith_node.left.right = Node(
             value, 
             left=ith_node.left, 
             right=ith_node
@@ -263,7 +265,7 @@ class CLList(MutableSequence[T]):
         if self.size == 0:
             self.head = Node(value)
         else:
-            node = Node.with_node(
+            node = Node(
                 value, 
                 left=self.head.left, 
                 right=self.head
@@ -279,7 +281,7 @@ class CLList(MutableSequence[T]):
         if self.size == 0:
             self.head = Node(value)
         else:
-            node = Node.with_node(
+            node = Node(
                 value, 
                 left=self.tail, 
                 right=self.tail.right
