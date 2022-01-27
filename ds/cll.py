@@ -1,16 +1,16 @@
-from collections.abc import MutableSequence
-from dataclasses import dataclass
+from collections.abc import MutableSequence, Iterable
 from typing import (
     Generic, 
     Iterable, 
     Iterator, 
-    Literal, 
+    Literal,
+    SupportsIndex, 
     TypeVar, 
     overload
 )
 
 from .errors import EmptyInstanceHeadAccess, InvalidIntegerSliceError
-from .validate import _slice_validation_error
+from .validate import _validate_integer_slice, assert_types
 
 T = TypeVar("T")
 
@@ -40,13 +40,14 @@ class Node(Generic[T]):
 class CLList(MutableSequence[T]):
 
     __slots__ = ('_head', '_size')
-    # @TODO: Add assert_types
+    
     def __init__(self, value: T=None):
         if value is not None:
             self._head: Node[T] = Node(value)
         self._size: int = 0
 
     @classmethod
+    @assert_types(iterable=Iterable)
     def from_iterable(cls, iterable: Iterable[T]) -> 'CLList[T]':
         self = cls()
         for item in iterable:
@@ -154,6 +155,7 @@ class CLList(MutableSequence[T]):
             If invalid error type, raises ValueError.
         """
 
+    @assert_types(index=int)
     def peek(
             self, 
             index: int, 
@@ -189,6 +191,7 @@ class CLList(MutableSequence[T]):
                 return i_node.value if node else i_node
         return None
 
+    @assert_types(index=int)
     def pop(self, index: int = -1) -> T:
         """Remove and return item at given index.
         If index is None, remove and return last item.
@@ -235,6 +238,7 @@ class CLList(MutableSequence[T]):
         self.size -= 1
         return val
 
+    @assert_types(index=int)
     def insert(self, index: int, value: T):
         """Insert value at given index, in doubly linked list.
         If index is greater than size, raise IndexError.
@@ -324,7 +328,8 @@ class CLList(MutableSequence[T]):
         """If index is slice, return a new CLList with items in given range.
         """
 
-    def __getitem__(self, index: int | slice) -> T | 'CLList[T]':
+    @assert_types(index = int | slice)
+    def __getitem__(self, index):
         if isinstance(index, int):
             try:
                 return self.peek(index, node=False, errors='raise')
@@ -335,7 +340,7 @@ class CLList(MutableSequence[T]):
                 )
         
         # slice
-        err = _slice_validation_error(index)
+        err = _validate_integer_slice(index)
         if err is not None:
             raise InvalidIntegerSliceError(err) from None
 
@@ -344,7 +349,8 @@ class CLList(MutableSequence[T]):
         return self.__class__.from_iterable(
                 self[i] for i in range(start, stop, step)
             )
- 
+    
+    @assert_types(index = int | slice)
     def __delitem__(self, index: int | slice):
         if isinstance(index, int):
             try:
@@ -355,7 +361,7 @@ class CLList(MutableSequence[T]):
                 raise exc from None
 
         # handle slice
-        err = _slice_validation_error(index)
+        err = _validate_integer_slice(index)
         if err is not None:
             raise InvalidIntegerSliceError(err) from None
 
