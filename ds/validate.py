@@ -24,4 +24,5 @@ def _validate_integer_slice(index: Any) -> Exception | None:
         [][start:stop:step]
         return None
     except (ValueError, TypeError) as exc:
+        # @TODO: Add logging
         return exc
