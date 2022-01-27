@@ -92,6 +92,9 @@ class CLList(MutableSequence[T]):
             )
         return self.head.left
 
+    def clear(self) -> None:
+        self.size = 0
+
     def __len__(self) -> int:
         return self.size
 
@@ -161,7 +164,7 @@ class CLList(MutableSequence[T]):
             index: int, 
             /, 
             *, 
-            node: bool=True, 
+            node: bool=False, 
             errors: Literal['ignore', 'raise'] = 'ignore'
             ) -> T | Node[T] | None:
         """Return item at given index, or None if index is out of range.
@@ -188,7 +191,7 @@ class CLList(MutableSequence[T]):
             index = self.size - index - 1       # adjust index
         for i, i_node in enumerate(self.iter_nodes(reverse=reverse)):
             if i == index:
-                return i_node.value if node else i_node
+                return i_node if node else i_node.value
         return None
 
     @assert_types(index=int)
@@ -288,11 +291,29 @@ class CLList(MutableSequence[T]):
             node = Node(
                 value, 
                 left=self.tail, 
-                right=self.tail.right
+                right=self.head
             )
-            self.tail.right.left = node
             self.tail.right = node
+            self.head.left = node
         self.size += 1
+
+    @assert_types(values=Iterable)
+    def extend(self, values: Iterable[T]) -> None:
+        """Insert values at the end of the list.
+        """
+        new = self.__class__.from_iterable(values)
+        if new.size == 0:
+            return
+        if self.size == 0:
+            self.head = new.head
+            self.size = new.size
+            return
+        self.head.left.right = new.head
+        new.head.left = self.head.left
+        self.head.left = new.tail
+        new.tail.right = self.head
+        self.size += new.size
+        del new # free memory
 
     def iter_nodes(
             self, 
@@ -302,7 +323,7 @@ class CLList(MutableSequence[T]):
         if self.size == 0:
             return 'Empty CLList'
 
-        current = self.head
+        current = self.tail if reverse else self.head
         while True:
             yield current
             current = current.left if reverse else current.right    # determine direction
@@ -350,6 +371,70 @@ class CLList(MutableSequence[T]):
                 self[i] for i in range(start, stop, step)
             )
     
+    @overload
+    def __setitem__(self, index: int, value: T):
+        """If index is int, set item at given index to value.
+        If index is out of range, raise IndexError.
+        """
+
+    @overload
+    def __setitem__(self, index: slice, value: Iterable[T]):
+        """If index is slice, set items in given range to values.
+        If extended slice length is greater than value length, 
+        raise ValueError.
+        """
+
+    def __setitem__(self, index, value):
+        if isinstance(index, int):
+            try:
+                self.peek(index, node=True, errors='raise').value = value
+                return
+            except (IndexError, ValueError) as exc:
+                # @TODO: add logging
+                raise exc from None
+
+        # handle slice
+        err = _validate_integer_slice(index)
+        if err is not None:
+            raise InvalidIntegerSliceError(err) from None
+
+        points = range(*index.indices(self.size))
+        slice_size = len(points)
+
+        if slice_size == self.size:
+            self.clear()
+            self.extend(value)
+            return
+        # breakpoint()
+        start, stop, step = points.start, points.stop, points.step
+        new = self.__class__.from_iterable(value)
+        if step == 1:
+            del self[start:stop:step]
+            if new.size == 0:
+                del new
+                return
+            set_after = self.peek(start - 1, node=True, errors='raise')
+            set_until = set_after.right
+            set_after.right = new.head
+            set_until.left = new.tail
+            new.tail.right = set_until
+            new.head.left = set_after
+            if 0 in points:
+                self.head = new.head
+            self.size += new.size
+            del new
+            return
+
+        # handle extended slice
+        if slice_size != len(new):
+            raise ValueError(
+                f"attempt to assign sequence of size {len(new)} "
+                f"to extended slice of size {slice_size}"
+            )
+        # breakpoint()
+        for i, value in zip(points, value, strict=True):
+            self[i] = value
+
     @assert_types(index = int | slice)
     def __delitem__(self, index: int | slice):
         if isinstance(index, int):
@@ -357,7 +442,7 @@ class CLList(MutableSequence[T]):
                 self.pop(index)
                 return
             except IndexError as exc:
-                # @TODO: Add logging
+                # @TODO: Add logging.
                 raise exc from None
 
         # handle slice
@@ -378,9 +463,9 @@ class CLList(MutableSequence[T]):
         start, stop, step = points.start, points.stop, points.step
 
         if step == 1 or step == -1:
-            start, stop = (start, stop - 1) if step == 1 else (stop + 1, start + 1)
+            start, stop = (start, stop - 1) if step == 1 else (stop + 1, start)
             del_from = self.peek(start, node=True, errors='raise')
-            del_till = self.peek(stop - 1, node=True, errors='raise')
+            del_till = self.peek(stop, node=True, errors='raise')
             del_from.left.right = del_till.right
             del_till.right.left = del_from.left
             self.size -= slice_size
@@ -394,3 +479,8 @@ class CLList(MutableSequence[T]):
         for i in points:
             self.pop(i)
         
+    def __repr__(self) -> str:
+        debug_size = sum(1 for _ in self)
+        if (size := self.size) == 0:
+            return f'{self.__class__.__name__}(empty, size=0, {debug_size=})'
+        return f'{self.__class__.__name__}(head={self.head}, {size=}, {debug_size=})'
