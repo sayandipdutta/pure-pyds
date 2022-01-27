@@ -8,14 +8,10 @@ from typing import (
     overload
 )
 
+from .errors import EmptyInstanceHeadAccess, InvalidIntegerSliceError
 from .validate import _slice_validation_error
 
 T = TypeVar("T")
-
-class EmptyInstanceHeadAccess(ValueError, IndexError):
-    def __init__(self, *args, hint: str='', **kwargs):
-        super().__init__(*args, **kwargs)
-        self.hint = f'\nHint: {hint}' * bool(hint)
 
 
 class Node(Generic[T]):
@@ -339,7 +335,7 @@ class CLList(MutableSequence[T]):
         # slice
         err = _slice_validation_error(index)
         if err is not None:
-            raise ValueError(err) from None
+            raise InvalidIntegerSliceError(err) from None
 
         start, stop, step = index.indices(self.size)
         
@@ -359,7 +355,7 @@ class CLList(MutableSequence[T]):
         # handle slice
         err = _slice_validation_error(index)
         if err is not None:
-            raise ValueError(err) from None
+            raise InvalidIntegerSliceError(err) from None
 
         points = range(*index.indices(self.size))
         slice_size = len(points)

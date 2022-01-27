@@ -1,4 +1,5 @@
 from typing import Any, Callable, ParamSpec, Type, TypeVar
+from types import TracebackType
 from inspect import signature
 
 P = ParamSpec('P')
@@ -17,10 +18,10 @@ def assert_types(**type_mappings: Type[Any]) -> Callable[[Callable[P, R]], Calla
         return wrapper
     return decorator
 
-def _slice_validation_error(index: Any) -> str | None:
+def _slice_validation_error(index: Any) -> Exception | None:
     start, stop, step = index.start, index.stop, index.step
     try:
         [][start:stop:step]
         return None
     except (ValueError, TypeError) as exc:
-        return str(exc)
+        return exc
