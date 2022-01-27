@@ -1,6 +1,7 @@
 from collections.abc import MutableSequence
+from itertools import islice
 # from dataclasses import dataclass, field
-from typing import Generic, Iterator, Literal, Optional, TypeVar, overload
+from typing import Generic, Iterable, Iterator, Literal, Optional, TypeVar, cast, overload
 
 T = TypeVar("T")
 
@@ -40,6 +41,13 @@ class CLList(MutableSequence[T]):
         if value is not None:
             self._head: Node[T] = Node(value)
         self._size: int = 0
+
+    @classmethod
+    def from_iterable(cls, iterable: Iterable[T]) -> 'CLList[T]':
+        self = cls()
+        for item in iterable:
+            self.append(item)
+        return self
 
     @property
     def size(self) -> int:
@@ -243,13 +251,26 @@ class CLList(MutableSequence[T]):
     def __reversed__(self) -> Iterator[T]:
         for node in self.iter_nodes(reverse=True):
             yield node.value
-    
-    
 
-    # @overload
-    # def __getitem__(self, index: int) -> T:
-    #     pass
+    @overload
+    def __getitem__(self, index: int) -> T:
+        """If index is int, return item at given index.
+        If index is out of range, raise IndexError.
+        """
 
-    # @overload
-    # def __getitem__(self, index: slice) -> 'CLList[T]':
-    #     pass
+    @overload
+    def __getitem__(self, index: slice) -> 'CLList[T]':
+        """If index is slice, return a new CLList with items in given range.
+        """
+
+    def __getitem__(self, index: int | slice) -> T | 'CLList[T]':
+        if isinstance(index, int):
+            try:
+                return self.peek(index, node=False, errors='raise')
+            except IndexError:
+                raise IndexError(f"{index=} out of range, for CLList of {len(self)=} items")
+        
+        index = cast(slice, index)      # @TODO: remove cast if possible
+        start, stop, step = index.indices(self.size)
+        return self.__class__.from_iterable(islice(self, start, stop, step))
+
