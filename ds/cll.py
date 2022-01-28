@@ -431,7 +431,7 @@ class CLList(MutableSequence[T]):
         # slice
         err = _validate_integer_slice(index)
         if err is not None:
-            raise InvalidIntegerSliceError(err) from None
+            raise InvalidIntegerSliceError(orig=err) from None
 
         start, stop, step = index.indices(self.size)
         
@@ -464,7 +464,7 @@ class CLList(MutableSequence[T]):
         # handle slice
         err = _validate_integer_slice(index)
         if err is not None:
-            raise InvalidIntegerSliceError(err) from None
+            raise InvalidIntegerSliceError(orig=err) from None
 
         points = range(*index.indices(self.size))
         slice_size = len(points)
@@ -516,7 +516,7 @@ class CLList(MutableSequence[T]):
         # handle slice
         err = _validate_integer_slice(index)
         if err is not None:
-            raise InvalidIntegerSliceError(err) from None
+            raise InvalidIntegerSliceError(orig=err) from None
 
         points = range(*index.indices(self.size))
         slice_size = len(points)

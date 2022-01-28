@@ -7,12 +7,10 @@ class EmptyInstanceHeadAccess(AttributeError, IndexError):
         return (super().__str__() + self.hint)
         
 class InvalidIntegerSliceError(ValueError, TypeError):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.args and isinstance(self.args[0], Exception):
-            self.original_exception = self.args[0].__class__
-        else:
-            self.original_exception = None
+    def __init__(self, *args, orig=None, **kwargs):
+        if isinstance(orig, Exception):
+            super().__init__(*args, orig, **kwargs)
+        self.original_exception = orig.__class__
 
     def __str__(self):
         return (
