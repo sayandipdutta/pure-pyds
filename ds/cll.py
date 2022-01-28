@@ -18,9 +18,63 @@ class Node(Generic[T]):
     __slots__ = ('value', 'left', 'right')
 
     def __init__(self, value: T, left: 'Node[T]' = None, right: 'Node[T]' = None):
-        self.value: T = value
-        self.left: 'Node[T]' = self if left is None else left
-        self.right: 'Node[T]' = self if right is None else right
+        self._value: T = value
+        self._left: 'Node[T]' = self if left is None else left
+        self._right: 'Node[T]' = self if right is None else right
+
+    @property
+    def value(self) -> T:
+        return self._value
+
+    @value.setter
+    def value(self, value: T):
+        self._value = value
+
+    @property
+    def left(self) -> 'Node[T]':
+        return self._left
+
+    @left.setter
+    def left(self, left: 'Node[T]'):
+        if not isinstance(left, left.__class__) or left is not None:
+            raise TypeError(f'left must be of type {self.__class__.__name__}')
+        self._left = self if left is None else left
+
+    @property
+    def right(self) -> 'Node[T]':
+        return self._right
+
+    @right.setter
+    def right(self, right: 'Node[T]') -> 'Node[T]':
+        if not isinstance(right, right.__class__) or right is not None:
+            raise TypeError(f'right must be of type {self.__class__.__name__}')
+        self._right = self if right is None else right
+
+    def __eq__(self, other: Any):
+        return isinstance(other, self.__class__) and self.value == other.value
+
+    def __ne__(self, other: Any):
+        return not self.__eq__(other)
+
+    def __lt__(self, other: 'Node[Any]') -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.value < other.value
+
+    def __gt__(self, other: 'Node[Any]') -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.value > other.value
+
+    def __ge__(self, other: 'Node[Any]') -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.value >= other.value
+
+    def __le__(self, other: 'Node[Any]') -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.value <= other.value
 
     def __rich_repr__(self):
         yield 'value', self.value
