@@ -592,10 +592,15 @@ class CDLList(MutableSequence[T]):
         """
         if by == 0:
             return self.copy()
+        # if by negative, shift left by negative amount
         if by < 0:
             return self << -by
+        # if shift is greater than length, shift by modulo
         if by >= self.size:
             return self or (self >> (by % self.size))
+        # if shift is greater than half length, shift left by length - shift
+        if by > self.size // 2:
+            return self << (self.size - by)
         self.head = self.peek(by, node=True, errors='raise')
         return self
 
@@ -607,10 +612,15 @@ class CDLList(MutableSequence[T]):
         """
         if by == 0:
             return self.copy()
+        # if by negative, shift right by negative amount
         if by < 0:
             return self >> -by
+        # if shift is greater than length, shift by modulo
         if by >= self.size:
             return self or (self << (by % self.size))
+        # if shift is greater than half length, shift right by length - shift
+        if by > self.size // 2:
+            return self >> (self.size - by)
         self.head = self.peek(-by, node=True, errors='raise')
         return self
 
