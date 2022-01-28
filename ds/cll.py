@@ -707,3 +707,4 @@ if __name__ == '__main__':
     k = l[5:4:-1]
     q, r = divmod(l, 11)
     m = sorted(l)
+    doctest.testmod()
