@@ -1,8 +1,8 @@
 from collections.abc import MutableSequence, Iterable
+from itertools import chain
 from typing import (
     Any,
     Generic, 
-    Iterable, 
     Iterator, 
     Literal,
     Optional,
@@ -39,7 +39,7 @@ class Node(Generic[T]):
 
     @left.setter
     def left(self, left: 'Node[T]'):
-        if not isinstance(left, left.__class__) or left is not None:
+        if not isinstance(left, self.__class__) and left is not None:
             raise TypeError(f'left must be of type {self.__class__.__name__}')
         self._left = self if left is None else left
 
@@ -48,8 +48,8 @@ class Node(Generic[T]):
         return self._right
 
     @right.setter
-    def right(self, right: 'Node[T]') -> 'Node[T]':
-        if not isinstance(right, right.__class__) or right is not None:
+    def right(self, right: 'Node[T]'):
+        if not isinstance(right, self.__class__) and right is not None:
             raise TypeError(f'right must be of type {self.__class__.__name__}')
         self._right = self if right is None else right
 
@@ -103,8 +103,9 @@ class CLList(MutableSequence[T]):
         self._size: int = 0
         if isinstance(value, Iterable):
             new = self.__class__.from_iterable(value)
-            self._head = new._head
-            self._size = new._size
+            if new:
+                self._head = new.head
+                self._size = new.size
             return
         if value is not None:
             self._head = Node(value)
@@ -160,7 +161,7 @@ class CLList(MutableSequence[T]):
         self.size = 0
 
     def copy(self) -> 'CLList[T]':
-        return self.__class__(self)
+        return self.__class__.from_iterable(self)
 
     def __len__(self) -> int:
         return self.size
