@@ -132,10 +132,40 @@ class Node(Generic[T]):
 
 
 class CDLList(MutableSequence[T]):
+    """Class implementing Circular Doubly Linked List.
+    
+    
+    This class implements a circular doubly linked list
+    https://en.wikipedia.org/wiki/Doubly_linked_list#Circular_doubly_linked_lists
+
+    When the list is empty, i.e., size is 0, there is no head / tail.
+
+    Usage:
+        >>> from ds.cdll import CDLList
+        >>> cdll = CDLList(1)
+        >>> cdll
+        CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1)
+        >>> cdll.append(2)
+        >>> cdll
+        CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=2)
+        >>> cdll.head
+        Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+        >>> cdll.head.left
+        CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+        >>> list(cdll)
+        [1, 2]
+        >>> CDLList([1, 2, 3, 4, 5])
+        CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=5)
+        >>> cdll.pop()
+        2
+        >>> cdll[:2]
+        [1, 3]
+    """
 
     __slots__ = ('_head', '_size')
     
     def __init__(self, value: Optional[T | Iterable[T]] = None):
+        """value can be a single value or an iterable of values."""
         self._head: Node[T]
         self._size: int = 0
         if isinstance(value, Iterable):
@@ -151,6 +181,7 @@ class CDLList(MutableSequence[T]):
     @classmethod
     @assert_types(iterable=Iterable)
     def from_iterable(cls, iterable: Iterable[T]) -> 'CDLList[T]':
+        """Creates a CDLList from an iterable."""
         self = cls()
         for item in iterable:
             self.append(item)
@@ -158,6 +189,7 @@ class CDLList(MutableSequence[T]):
 
     @property
     def size(self) -> int:
+        """Property: Size of the CDLList."""
         return self._size
 
     @size.setter
@@ -170,6 +202,7 @@ class CDLList(MutableSequence[T]):
 
     @property
     def head(self) -> Node[T]:
+        """Property: Head of the CDLList."""
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
                 "Cannot get head of empty CDLList",
@@ -186,6 +219,7 @@ class CDLList(MutableSequence[T]):
 
     @property
     def tail(self) -> Node[T]:
+        """Property: Tail of the CDLList."""
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
                 "Cannot get tail of empty CDLList",
@@ -195,12 +229,46 @@ class CDLList(MutableSequence[T]):
         return self.head.left
 
     def clear(self) -> None:
+        """Clears the CDLList. i.e. removes all items.
+        
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.clear()
+            >>> cdll
+            CDLList(empty, size=0)
+        """
         self.size = 0
 
     def copy(self) -> 'CDLList[T]':
+        """Returns a shallow copy of the CDLList.
+        
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll2 = cdll.copy()
+            >>> cdll2
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll2 is cdll
+            False
+        """
         return self.__class__.from_iterable(self)
 
     def __len__(self) -> int:
+        """Returns the size, i.e. length of the CDLList.
+        
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> len(cdll)
+            3
+        """
         return self.size
 
     @overload
@@ -277,7 +345,26 @@ class CDLList(MutableSequence[T]):
         If errors=='raise', raise IndexError if index is out of range.
         If errors=='ignore', return None if index is out of range.
         default is 'ignore'.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.peek(0)
+            1
+            >>> cdll.peek(1, node=True)
+            Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            >>> cdll.peek(3)
+            >>> cdll.peek(3, node=True)
+            >>> cdll.peek(3, node=True, errors='raise')
+            Traceback (most recent call last):
+                ...
+            IndexError: Index 3 out of range.
+            >>> cdll.peek(3, node=True, errors='ignore') is None
+            True
         """
+
         if index < 0:               # Handle negative index
             index += self.size
         if index < 0 or index >= self.size:
@@ -304,6 +391,24 @@ class CDLList(MutableSequence[T]):
         """Remove and return item at given index.
         If index is None, remove and return last item.
         If index is out of range, raise IndexError.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.pop(0)
+            1
+            >>> cdll
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=2)
+            >>> cdll.pop(1)
+            3
+            >>> cdll
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1)
+            >>> cdll.pop(1)
+            Traceback (most recent call last):
+                ...
+            IndexError: Index 1 out of range.
         """
         if index < 0:
             index += self.size
@@ -331,6 +436,21 @@ class CDLList(MutableSequence[T]):
     def popleft(self) -> T:
         """Remove and return first item, in doubly linked list.
         Raise EmptyInstanceHeadAccess if empty.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1)
+            >>> cdll.popleft()
+            1
+            >>> cdll
+            CDLList(head=<class 'ds.cdll.Node'>, size=0)
+            >>> cdll.popleft()
+            Traceback (most recent call last):
+                ...
+            EmptyInstanceHeadAccess: Cannot pop from empty CDLList
+            Hint: Try inserting an item first using append()/appendleft()
         """
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
@@ -350,6 +470,24 @@ class CDLList(MutableSequence[T]):
     def insert(self, index: int, value: T):
         """Insert value at given index, in doubly linked list.
         If index is greater than size, raise IndexError.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.insert(0, 0)
+            >>> list(cdll)
+            [0, 1, 2, 3]
+            >>> cdll.insert(2, 0)
+            >>> list(cdll)
+            [0, 1, 0, 2, 3]
+            >>> cdll
+            CDLList(head=Node(value=0, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=5)
+            >>> cdll.insert(9, 0)
+            Traceback (most recent call last):
+                ...
+            IndexError: Index 9 out of range.
         """
         if index < 0:
             index += self.size
@@ -373,6 +511,22 @@ class CDLList(MutableSequence[T]):
 
     def appendleft(self, value: T):
         """Insert value at the front of the list.
+
+        Moves head to the newly inserted node.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([])
+            >>> cdll
+            CDLList(empty, size=0)
+            >>> cdll.appendleft(1)
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1)
+            >>> cdll.appendleft(2)
+            >>> cdll
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=2)
+            >>> list(cdll)
+            [2, 1]
         """
         if self.size == 0:
             self.head = Node(value)
@@ -389,6 +543,20 @@ class CDLList(MutableSequence[T]):
 
     def append(self, value: T):
         """Insert value at the end of the list.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([])
+            >>> cdll
+            CDLList(empty, size=0)
+            >>> cdll.append(1)
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1)
+            >>> cdll.append(2)
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=2)
+            >>> list(cdll)
+            [1, 2]
         """
         if self.size == 0:
             self.head = Node(value)
@@ -405,6 +573,20 @@ class CDLList(MutableSequence[T]):
     @assert_types(values=Iterable)
     def extend(self, values: Iterable[T]) -> None:
         """Insert values at the end of the list.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([])
+            >>> cdll.extend([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> list(cdll)
+            [1, 2, 3]
+            >>> cdll.extend([4, 5, 6])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=6)
+            >>> list(cdll)
+            [1, 2, 3, 4, 5, 6]
         """
         new = self.__class__.from_iterable(values)
         if new.size == 0:
@@ -424,7 +606,24 @@ class CDLList(MutableSequence[T]):
             self, 
             cycle: bool = False, 
             reverse: bool = False
-        ) -> Iterator[Node[T]]:
+            ) -> Iterator[Node[T]]:
+        """Iterate over nodes in the list.
+
+        If cycle is True, iterate over nodes in a cycle. (default: False)
+        If reverse is True, iterate over nodes in reverse order. (default: False)
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> print(*cdll.iter_nodes(), sep='\n')
+            Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            Node(value=3, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            >>> print(*cdll.iter_nodes(reverse=True), sep='\n')
+            Node(value=3, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+        """
         if self.size == 0:
             return 'Empty CDLList'
 
@@ -436,10 +635,30 @@ class CDLList(MutableSequence[T]):
                 break
 
     def __iter__(self) -> Iterator[T]:
+        """Iterate over values in the list.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> print(*cdll, sep='\n')
+            1
+            2
+            3
+        """
         for node in self.iter_nodes():
             yield node.value
 
     def __reversed__(self) -> Iterator[T]:
+        """Iterate over values in the list in reverse order.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> print(*reversed(cdll), sep='\n')
+            3
+            2
+            1
+        """
         for node in self.iter_nodes(reverse=True):
             yield node.value
 
@@ -452,10 +671,49 @@ class CDLList(MutableSequence[T]):
     @overload
     def __getitem__(self, index: slice) -> 'CDLList[T]':
         """If index is slice, return a new CDLList with items in given range.
+        If slice is not a valid integer slice, raise InvalidIntegerSliceError.
         """
 
     @assert_types(index = int | slice)
     def __getitem__(self, index):
+        """
+        Return item(s) at given index(es).
+        
+        If index is int, return item at given index.
+        If index is out of range, raise IndexError.
+        If index is slice, return a new CDLList with items in given range.
+        If slice is not a valid integer slice, raise InvalidIntegerSliceError.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll[0]
+            1
+            >>> cdll[1]
+            2
+            >>> cdll[2]
+            3
+            >>> cdll[-1]
+            3
+            >>> cdll[3]
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            >>> cdll[1:2]
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1)
+            >>> cdll[::-1]
+            CDLList(head=Node(value=3, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll[:3:2]
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=2)
+            >>> list(cdll[:3:2])
+            [1, 2]
+            >>> cdll[::'w']
+            Traceback (most recent call last):
+            ...
+            InvalidIntegerSliceError: slice indices must be integers or None or have an __index__ method
+            Orig: <class 'TypeError'>
+        """
+
         if isinstance(index, int):
             try:
                 return self.peek(index, node=False, errors='raise')
@@ -490,6 +748,45 @@ class CDLList(MutableSequence[T]):
         """
 
     def __setitem__(self, index, value):
+        """
+        Set item(s) at given index(es).
+
+        If index is int, set item at given index to value.
+        If index is out of range, raise IndexError.
+        If index is slice, set items in given range to values.
+        If extended slice length is greater than value length,
+        raise ValueError.
+        If slice is not a valid integer slice, raise InvalidIntegerSliceError.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll[0] = 4
+            >>> cdll[1] = 5
+            >>> cdll[2] = 6
+            >>> cdll[-1] = 7
+            >>> cdll[3] = 8
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            >>> cdll[1:2] = [9, 10]
+            >>> list(cdll)
+            [4, 9, 10, 7]
+            >>> cdll[::-1] = [11, 12, 13, 14]
+            >>> list(cdll)
+            [14, 13, 12, 11]
+            >>> cdll[:3:2] = [-1, -2]
+            >>> list(cdll)
+            [-1, 13, -2, 11]
+            >>> cdll[::-1] = [15, 16]
+            Traceback (most recent call last):
+            ...
+            ValueError: attempt to assign sequence of size 2 to extended slice of size 3
+            >>> cdll[:] = []
+            >>> list(cdll)
+            []
+        """
+
         if isinstance(index, int):
             try:
                 self.peek(index, node=True, errors='raise').value = value
@@ -542,6 +839,21 @@ class CDLList(MutableSequence[T]):
 
     @assert_types(index = int | slice)
     def __delitem__(self, index: int | slice):
+        """If index is int, delete item at given index.
+        If index is out of range, raise IndexError.
+        If index is slice, delete items in given range.
+        If slice is not a valid integer slice, raise InvalidIntegerSliceError.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> del cdll[0]
+            >>> cdll
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=2)
+            >>> del cdll[:]
+            >>> cdll
+            CDLList(head=None, size=0)
+        """
         if isinstance(index, int):
             try:
                 self.pop(index)
@@ -586,9 +898,33 @@ class CDLList(MutableSequence[T]):
 
     @assert_types(by=int)
     def __rshift__(self, by: int) -> 'CDLList[T]':
-        """Return a new CDLList with items shifted by given amount.
+        """Moves head to right by given amount, 
+        returns the CDLList with items shifted by given amount.
+
+        Modifies in-place.
+
         If amount is negative, shift items to left.
-        If amount is greater than length of CDLList, return empty CDLList.
+        If amount is greater than length of CDLList, take a modulo of by
+        w.r.t self.size, then apply rshift.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.head
+            Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            >>> cdll >> 2
+            CDLList(head=Node(value=3, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.head
+            Node(value=3, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            >>> cdll >> -2  # equivalent to cdll << 2
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.head
+            Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            >>> # cdll >> 4 is equivalent to: cdll >> 1 (because 4 % 3 == 1)
+            >>> cdll >> 4
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
         """
         if by == 0:
             return self.copy()
@@ -601,9 +937,31 @@ class CDLList(MutableSequence[T]):
 
     @assert_types(by=int)
     def __lshift__(self, by: int) -> 'CDLList[T]':
-        """Return a new CDLList with items shifted by given amount.
+        """Moves head to left by given amount,
+        returns the CDLList with items shifted by given amount.
+
+        Modifies in-place.
         If amount is negative, shift items to right.
         If amount is greater than length of CDLList, return empty CDLList.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.head
+            Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            >>> cdll << 2
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.head
+            Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            >>> cdll << -2  # equivalent to cdll >> 2
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll.head
+            Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+            >>> # cdll << 4 is equivalent to: cdll << 1 (because 4 % 3 == 1)
+            >>> cdll << 4
+            CDLList(head=Node(value=3, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
         """
         if by == 0:
             return self.copy()
