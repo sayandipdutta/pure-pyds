@@ -1,5 +1,5 @@
 from typing import Any, Callable, ParamSpec, Type, TypeVar
-from types import TracebackType, UnionType
+from types import UnionType
 from inspect import signature
 
 P = ParamSpec('P')
@@ -24,4 +24,5 @@ def _validate_integer_slice(index: Any) -> Exception | None:
         [][start:stop:step]
         return None
     except (ValueError, TypeError) as exc:
+        # @TODO: Add logging
         return exc
