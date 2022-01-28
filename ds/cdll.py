@@ -175,15 +175,15 @@ class CDLList(MutableSequence[T]):
         >>> cdll.head
         Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
         >>> cdll.head.left
-        CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
+        Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
         >>> list(cdll)
         [1, 2]
-        >>> CDLList([1, 2, 3, 4, 5])
-        CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=5)
         >>> cdll.pop()
         2
-        >>> cdll[:2]
-        [1, 3]
+        >>> list(cdll[:2])
+        [1]
+        >>> CDLList([1, 2, 3, 4, 5])
+        CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=5)
     """
 
     __slots__ = ('_head', '_size')
@@ -449,8 +449,6 @@ class CDLList(MutableSequence[T]):
             return val
         if index == 0:
             return self.popleft()
-        if index == self.size - 1:
-            return self.pop()
         ith_node = self.peek(index, node=True, errors='raise')
         ith_node.left.right = ith_node.right
         ith_node.right.left = ith_node.left
@@ -469,11 +467,11 @@ class CDLList(MutableSequence[T]):
             >>> cdll.popleft()
             1
             >>> cdll
-            CDLList(head=<class 'ds.cdll.Node'>, size=0)
+            CDLList(empty, size=0)
             >>> cdll.popleft()
             Traceback (most recent call last):
                 ...
-            EmptyInstanceHeadAccess: Cannot pop from empty CDLList
+            ds.errors.EmptyInstanceHeadAccess: Cannot pop from empty CDLList
             Hint: Try inserting an item first using append()/appendleft()
         """
         if self.size == 0:
@@ -631,7 +629,7 @@ class CDLList(MutableSequence[T]):
             cycle: bool = False, 
             reverse: bool = False
             ) -> Iterator[Node[T]]:
-        """Iterate over nodes in the list.
+        r"""Iterate over nodes in the list.
 
         If cycle is True, iterate over nodes in a cycle. (default: False)
         If reverse is True, iterate over nodes in reverse order. (default: False)
@@ -657,9 +655,11 @@ class CDLList(MutableSequence[T]):
             current = current.left if reverse else current.right    # determine direction
             if not cycle and current is self.head:                  # break if not cyclic
                 break
+        if reverse:
+            yield self.head
 
     def __iter__(self) -> Iterator[T]:
-        """Iterate over values in the list.
+        r"""Iterate over values in the list.
 
         Usage:
             >>> from ds.cdll import CDLList
@@ -673,7 +673,7 @@ class CDLList(MutableSequence[T]):
             yield node.value
 
     def __reversed__(self) -> Iterator[T]:
-        """Iterate over values in the list in reverse order.
+        r"""Iterate over values in the list in reverse order.
 
         Usage:
             >>> from ds.cdll import CDLList
@@ -787,12 +787,11 @@ class CDLList(MutableSequence[T]):
             >>> cdll = CDLList([1, 2, 3])
             >>> cdll[0] = 4
             >>> cdll[1] = 5
-            >>> cdll[2] = 6
             >>> cdll[-1] = 7
             >>> cdll[3] = 8
             Traceback (most recent call last):
             ...
-            IndexError: list index out of range
+            IndexError: Index 3 out of range
             >>> cdll[1:2] = [9, 10]
             >>> list(cdll)
             [4, 9, 10, 7]
@@ -805,12 +804,12 @@ class CDLList(MutableSequence[T]):
             >>> cdll[::-1] = [15, 16]
             Traceback (most recent call last):
             ...
-            ValueError: attempt to assign sequence of size 2 to extended slice of size 3
+            ValueError: attempt to assign sequence of size 2 to extended slice of size 4
             >>> cdll[:] = []
             >>> list(cdll)
             []
         """
-
+        # breakpoint()
         if isinstance(index, int):
             try:
                 self.peek(index, node=True, errors='raise').value = value
@@ -826,13 +825,15 @@ class CDLList(MutableSequence[T]):
 
         points = range(*index.indices(self.size))
         slice_size = len(points)
+        start, stop, step = points.start, points.stop, points.step
 
-        if slice_size == self.size:
+        if slice_size == self.size and step == 1:
             self.clear()
+            if step < 0:
+                value = reversed(value)
             self.extend(value)
             return
-        # breakpoint()
-        start, stop, step = points.start, points.stop, points.step
+        
         new = self.__class__.from_iterable(value)
         if step == 1:
             del self[start:stop:step]
@@ -857,7 +858,7 @@ class CDLList(MutableSequence[T]):
                 f"attempt to assign sequence of size {len(new)} "
                 f"to extended slice of size {slice_size}"
             )
-        # breakpoint()
+        
         for i, value in zip(points, value, strict=True):
             self[i] = value
 
@@ -1184,8 +1185,8 @@ class CDLList(MutableSequence[T]):
     def __repr__(self) -> str:
         debug_size = sum(1 for _ in self)
         if (size := self.size) == 0:
-            return f'{self.__class__.__name__}(empty, size=0, {debug_size=})'
-        return f'{self.__class__.__name__}(head={self.head}, {size=}, {debug_size=})'
+            return f'{self.__class__.__name__}(empty, size=0)' #, {debug_size=})'
+        return f'{self.__class__.__name__}(head={self.head}, {size=})' #, {debug_size=})'
 
     def __rich_repr__(self):
         """Add repr option for rich display.
