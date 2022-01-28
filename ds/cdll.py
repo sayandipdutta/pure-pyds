@@ -58,6 +58,13 @@ class Node(Generic[T]):
     __slots__ = ('_value', '_left', '_right')
 
     def __init__(self, value: T, *, left: 'Node[T]' = None, right: 'Node[T]' = None):
+        """Node(value, *[, left, right]) -> Node[T]
+
+        Args:
+            value (T): [description]
+            left (Node[T], optional): [description]. Defaults to None.
+            right (Node[T], optional): [description]. Defaults to None.
+        """
         self._value: T = value
         self._left: 'Node[T]' = self if left is None else left
         self._right: 'Node[T]' = self if right is None else right
@@ -117,10 +124,15 @@ class Node(Generic[T]):
         return self.value <= other.value
 
     def __rich_repr__(self):
+        """Add support for rich representation.
+        
+        See [1], [2] in CDLL.__rich_repr__() docstring for more details.
+        """
         yield 'value', self.value
         yield 'left', self.__class__
         yield 'right', self.__class__
 
+    # See [1], [2] in CDLL.__rich_repr__() docstring for more details.
     __rich_repr__.angular = True    # type: ignore
 
     def __repr__(self):
@@ -983,10 +995,42 @@ class CDLList(MutableSequence[T]):
         return self
 
     def __contains__(self, x: Any) -> bool:
+        """Check if value in CDLList.
+        
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> 2 in cdll
+            True
+            >>> 4 in cdll
+            False
+        """
         return any(x == value for value in self)
 
     @assert_types(value=int)
     def __floordiv__(self, value: int) -> list['CDLList[T]']:
+        """Returns a list of equally size CDLList objects, 
+        each containing a slice of self. Number of CDLLists 
+        returned is equal to value.
+
+        If value < 1, raises ValueError.
+        
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3, 4, 5, 6, 7, 8, 9])
+            >>> cdll // 3
+            [CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3),
+             CDLList(head=Node(value=4, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3),
+             CDLList(head=Node(value=7, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)]
+            >>> cdll // 2
+            [CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=4),
+             CDLList(head=Node(value=5, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=4)]
+            >>> cdll // 0
+            Traceback (most recent call last):
+                ...
+            ValueError: value must be >= 1, not 0
+        """
+
         if value < 1:
             raise ValueError(f"value must be >= 1, not {value}")
         if value > self.size:
@@ -1009,6 +1053,23 @@ class CDLList(MutableSequence[T]):
 
     @assert_types(value=int)
     def __mod__(self, value: int) -> 'CDLList[T]':
+        """Returns a CDLList containing a slice of self containing
+        last n elements, where n == self.size % value.
+
+        If value < 1, raises ValueError.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3, 4, 5, 6, 7, 8, 9])
+            >>> cdll % 3
+            CDLList(empty, size=0)
+            >>> cdll % 2
+            CDLList(head=Node(value=9, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1)
+            >>> cdll % 0
+            Traceback (most recent call last):
+                ...
+            ValueError: value must be >= 1, not 0
+        """
         if value < 1:
             raise ValueError(f"value must be >= 1, not {value}")
         if value > self.size:
@@ -1020,6 +1081,30 @@ class CDLList(MutableSequence[T]):
 
     @assert_types(value=int)
     def __divmod__(self, value: int) -> tuple[list['CDLList[T]'], 'CDLList[T]']:
+        """Returns a tuple containing a two elements:
+        1. self // value
+        2. self % value
+
+        If value < 1, raises ValueError.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3, 4, 5, 6, 7, 8, 9])
+            >>> divmod(cdll, 3)
+            ([CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3),
+                CDLList(head=Node(value=4, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3),
+                CDLList(head=Node(value=7, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)],
+                CDLList(head=Node(value=9, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1))
+            >>> divmod(cdll, 2)
+            ([CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=4),
+                CDLList(head=Node(value=5, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=4)],
+                CDLList(head=Node(value=9, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=1))
+            >>> divmod(cdll, 0)
+            Traceback (most recent call last):
+                ...
+            ValueError: value must be >= 1, not 0
+        """
+
         if value < 1:
             raise ValueError(f"value must be >= 1, not {value}")
         return self // value, self % value
@@ -1027,33 +1112,57 @@ class CDLList(MutableSequence[T]):
     @assert_types(value=Iterable)
     def __add__(self, other: Iterable[T]) -> 'CDLList[T]':
         """Return a new CDLList with items from self and other.
+
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> cdll = CDLList([1, 2, 3])
+            >>> cdll + [4, 5, 6]
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=6)
+            >>> list(cdll + [4, 5, 6])
+            [1, 2, 3, 4, 5, 6]
         """
         return self.__class__(chain(self, other))
 
-    def __eq__(self, __o: Any) -> bool:
-        return all(
-            s == __o.peek(i) for i, s in enumerate(self)
-        )
+    def __eq__(self, other: Any) -> bool:
+        """Return True if self and other are equal, False otherwise."""
+        try:
+            return (
+                isinstance(other, CDLList)
+                and self.size == other.size
+                and all(
+                    s == o for s, o in zip(self, other, strict=True)
+                )
+            )
+        except ValueError:
+            # this handles cases where 
+            # other instance nodes are not linked properly
+            # @TODO: add logging, add warning
+            return False
 
     def __ne__(self, __o: Any) -> bool:
+        """Return True if self and other are not equal, False otherwise."""
         return not self == __o
 
     def __lt__(self, __o: 'CDLList[Any]') -> bool:
+        """Return True if self is less than other, False otherwise."""
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size < __o.size if (self.size and __o.size) else True
 
     def __le__(self, __o: 'CDLList[Any]') -> bool:
+        """Return True if self is less than or equal to other, False otherwise."""
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size <= __o.size if (self.size and __o.size) else True
 
     def __gt__(self, __o: 'CDLList[Any]') -> bool:
+        """Return True if self is greater than other, False otherwise."""
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size > __o.size if (self.size and __o.size) else False
 
     def __ge__(self, __o: 'CDLList[Any]') -> bool:
+        """Return True if self is greater than or equal to other, False otherwise."""
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size >= __o.size if (self.size and __o.size) else False
@@ -1065,9 +1174,16 @@ class CDLList(MutableSequence[T]):
         return f'{self.__class__.__name__}(head={self.head}, {size=}, {debug_size=})'
 
     def __rich_repr__(self):
+        """Add repr option for rich display.
+
+        Reference: 
+        1. https://github.com/willmcgugan/rich/tree/master/rich
+        2. https://rich.readthedocs.io/en/stable/pretty.html#rich-repr-protocol
+        """
         yield "empty" if self.size == 0 else ("head", self.head)
         yield "size", self.size
 
+    # See: [1], [2] in __rich_repr__ docstring for more info
     __rich_repr__.angular = True    # type: ignore
 
 if __name__ == '__main__':
