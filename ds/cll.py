@@ -5,17 +5,20 @@ from typing import (
     Iterable, 
     Iterator, 
     Literal,
+    Optional,
     TypeVar, 
     overload
 )
 
 from .errors import EmptyInstanceHeadAccess, InvalidIntegerSliceError
+from .types import _SupportsComparison
 from .validate import _validate_integer_slice, assert_types
 
 T = TypeVar("T")
+C = TypeVar("C", bound=_SupportsComparison)
 
 class Node(Generic[T]):
-    __slots__ = ('value', 'left', 'right')
+    __slots__ = ('_value', '_left', '_right')
 
     def __init__(self, value: T, left: 'Node[T]' = None, right: 'Node[T]' = None):
         self._value: T = value
@@ -56,22 +59,22 @@ class Node(Generic[T]):
     def __ne__(self, other: Any):
         return not self.__eq__(other)
 
-    def __lt__(self, other: 'Node[Any]') -> bool:
+    def __lt__(self: 'Node[C]', other: 'Node[C]') -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value < other.value
 
-    def __gt__(self, other: 'Node[Any]') -> bool:
+    def __gt__(self: 'Node[C]', other: 'Node[C]') -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value > other.value
 
-    def __ge__(self, other: 'Node[Any]') -> bool:
+    def __ge__(self: 'Node[C]', other: 'Node[C]') -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value >= other.value
 
-    def __le__(self, other: 'Node[Any]') -> bool:
+    def __le__(self: 'Node[C]', other: 'Node[C]') -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value <= other.value
@@ -95,7 +98,7 @@ class CLList(MutableSequence[T]):
 
     __slots__ = ('_head', '_size')
     
-    def __init__(self, value: T=None):
+    def __init__(self, value: Optional[T | Iterable[T]] = None):
         self._head: Node[T]
         self._size: int = 0
         if isinstance(value, Iterable):
@@ -155,6 +158,9 @@ class CLList(MutableSequence[T]):
 
     def clear(self) -> None:
         self.size = 0
+
+    def copy(self) -> 'CLList[T]':
+        return self.__class__(self)
 
     def __len__(self) -> int:
         return self.size
@@ -567,7 +573,6 @@ class CLList(MutableSequence[T]):
             return self >> -by
         if by >= self.size:
             return self or (self << (by % self.size))
-        self.tail = self.peek(-by, node=True, errors='raise')
         return self
 
     def __eq__(self, __o: Any) -> bool:
@@ -609,3 +614,8 @@ class CLList(MutableSequence[T]):
         yield "size", self.size
 
     __rich_repr__.angular = True    # type: ignore
+
+if __name__ == '__main__':
+    n = Node(9)
+    l = Node(10)
+    print(l > n)
