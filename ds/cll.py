@@ -1,4 +1,5 @@
 from collections.abc import MutableSequence, Iterable
+import doctest
 from itertools import chain
 from typing import (
     Any,
@@ -18,6 +19,42 @@ T = TypeVar("T")
 C = TypeVar("C", bound=_SupportsComparison)
 
 class Node(Generic[T]):
+    """Class implementing Node. 
+    
+    It has three properties:
+    - value: T - the value of the node
+    - left: Node[T] - the left item of the node
+    - right: Node[T] - the right item of the node
+
+    All the properties are undeleteable.
+    Only a Node object can be assigned to the left and right properties.
+
+    For Node initialized with only value, both left and right point to
+    itself.
+
+    Usage:
+        >>> from ds.cll import Node
+        >>> node = Node(1)
+        >>> node
+        Node(value=1, left=<class 'ds.cll.Node'>, right=<class 'ds.cll.Node'>)
+        >>> node.value
+        1
+        >>> node.left
+        Node(value=1, left=<class 'ds.cll.Node'>, right=<class 'ds.cll.Node'>)
+        >>> node.right is node.left
+        True
+        >>> node.left = Node(2)
+        >>> node.left
+        Node(value=2, left=<class 'ds.cll.Node'>, right=<class 'ds.cll.Node'>)
+        >>> node.right = Node(3)
+        >>> node.right
+        Node(value=3, left=<class 'ds.cll.Node'>, right=<class 'ds.cll.Node'>)
+        >>> node.left < node.right
+        True
+        >>> # checks (node.left.value := 2) < (node.right.value := 3) == True
+        >>> node > node.right
+        False
+    """
     __slots__ = ('_value', '_left', '_right')
 
     def __init__(self, value: T, *, left: 'Node[T]' = None, right: 'Node[T]' = None):
@@ -666,6 +703,7 @@ class CLList(MutableSequence[T]):
     __rich_repr__.angular = True    # type: ignore
 
 if __name__ == '__main__':
-    n = Node(9)
-    l = Node(10)
-    print(l > n)
+    l: CLList[int] = CLList(range(1000))
+    k = l[5:4:-1]
+    q, r = divmod(l, 11)
+    m = sorted(l)
