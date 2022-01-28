@@ -1,5 +1,5 @@
 from typing import Any, Callable, ParamSpec, Type, TypeVar
-from types import TracebackType, UnionType
+from types import UnionType
 from inspect import signature
 
 P = ParamSpec('P')
