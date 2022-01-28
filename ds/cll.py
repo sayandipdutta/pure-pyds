@@ -20,7 +20,7 @@ C = TypeVar("C", bound=_SupportsComparison)
 class Node(Generic[T]):
     __slots__ = ('_value', '_left', '_right')
 
-    def __init__(self, value: T, left: 'Node[T]' = None, right: 'Node[T]' = None):
+    def __init__(self, value: T, *, left: 'Node[T]' = None, right: 'Node[T]' = None):
         self._value: T = value
         self._left: 'Node[T]' = self if left is None else left
         self._right: 'Node[T]' = self if right is None else right
