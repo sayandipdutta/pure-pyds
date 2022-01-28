@@ -33,22 +33,22 @@ class Node(Generic[T]):
     itself.
 
     Usage:
-        >>> from ds.cll import Node
+        >>> from ds.cdll import Node
         >>> node = Node(1)
         >>> node
-        Node(value=1, left=<class 'ds.cll.Node'>, right=<class 'ds.cll.Node'>)
+        Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
         >>> node.value
         1
         >>> node.left
-        Node(value=1, left=<class 'ds.cll.Node'>, right=<class 'ds.cll.Node'>)
+        Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
         >>> node.right is node.left
         True
         >>> node.left = Node(2)
         >>> node.left
-        Node(value=2, left=<class 'ds.cll.Node'>, right=<class 'ds.cll.Node'>)
+        Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
         >>> node.right = Node(3)
         >>> node.right
-        Node(value=3, left=<class 'ds.cll.Node'>, right=<class 'ds.cll.Node'>)
+        Node(value=3, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
         >>> node.left < node.right
         True
         >>> # checks (node.left.value := 2) < (node.right.value := 3) == True
@@ -131,7 +131,7 @@ class Node(Generic[T]):
         )
 
 
-class CLList(MutableSequence[T]):
+class CDLList(MutableSequence[T]):
 
     __slots__ = ('_head', '_size')
     
@@ -150,7 +150,7 @@ class CLList(MutableSequence[T]):
 
     @classmethod
     @assert_types(iterable=Iterable)
-    def from_iterable(cls, iterable: Iterable[T]) -> 'CLList[T]':
+    def from_iterable(cls, iterable: Iterable[T]) -> 'CDLList[T]':
         self = cls()
         for item in iterable:
             self.append(item)
@@ -172,7 +172,7 @@ class CLList(MutableSequence[T]):
     def head(self) -> Node[T]:
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
-                "Cannot get head of empty CLList",
+                "Cannot get head of empty CDLList",
                 hint = "Try inserting an item first "
                        "using append()/appendleft()."
             )
@@ -188,7 +188,7 @@ class CLList(MutableSequence[T]):
     def tail(self) -> Node[T]:
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
-                "Cannot get tail of empty CLList",
+                "Cannot get tail of empty CDLList",
                 hint = "Try inserting an item first "
                        "using append()/appendleft()."
             )
@@ -197,7 +197,7 @@ class CLList(MutableSequence[T]):
     def clear(self) -> None:
         self.size = 0
 
-    def copy(self) -> 'CLList[T]':
+    def copy(self) -> 'CDLList[T]':
         return self.__class__.from_iterable(self)
 
     def __len__(self) -> int:
@@ -311,7 +311,7 @@ class CLList(MutableSequence[T]):
             raise IndexError(f"Index {index} out of range")
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
-                "Cannot pop from empty CLList",
+                "Cannot pop from empty CDLList",
                 hint = "Try inserting an item first using append()/appendleft()"
             )
         if self.size == 1:
@@ -334,7 +334,7 @@ class CLList(MutableSequence[T]):
         """
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
-                "Cannot pop from empty CLList",
+                "Cannot pop from empty CDLList",
                 hint = "Try inserting an item first using append()/appendleft()"
             )
         val = self.head.value
@@ -426,7 +426,7 @@ class CLList(MutableSequence[T]):
             reverse: bool = False
         ) -> Iterator[Node[T]]:
         if self.size == 0:
-            return 'Empty CLList'
+            return 'Empty CDLList'
 
         current = self.tail if reverse else self.head
         while True:
@@ -450,8 +450,8 @@ class CLList(MutableSequence[T]):
         """
 
     @overload
-    def __getitem__(self, index: slice) -> 'CLList[T]':
-        """If index is slice, return a new CLList with items in given range.
+    def __getitem__(self, index: slice) -> 'CDLList[T]':
+        """If index is slice, return a new CDLList with items in given range.
         """
 
     @assert_types(index = int | slice)
@@ -462,7 +462,7 @@ class CLList(MutableSequence[T]):
             except IndexError:
                 raise IndexError(
                     f"{index=} out of range, "
-                    "for CLList of {len(self)=} items"
+                    "for CDLList of {len(self)=} items"
                 )
         
         # slice
@@ -585,10 +585,10 @@ class CLList(MutableSequence[T]):
             self.pop(i)
 
     @assert_types(by=int)
-    def __rshift__(self, by: int) -> 'CLList[T]':
-        """Return a new CLList with items shifted by given amount.
+    def __rshift__(self, by: int) -> 'CDLList[T]':
+        """Return a new CDLList with items shifted by given amount.
         If amount is negative, shift items to left.
-        If amount is greater than length of CLList, return empty CLList.
+        If amount is greater than length of CDLList, return empty CDLList.
         """
         if by == 0:
             return self.copy()
@@ -600,10 +600,10 @@ class CLList(MutableSequence[T]):
         return self
 
     @assert_types(by=int)
-    def __lshift__(self, by: int) -> 'CLList[T]':
-        """Return a new CLList with items shifted by given amount.
+    def __lshift__(self, by: int) -> 'CDLList[T]':
+        """Return a new CDLList with items shifted by given amount.
         If amount is negative, shift items to right.
-        If amount is greater than length of CLList, return empty CLList.
+        If amount is greater than length of CDLList, return empty CDLList.
         """
         if by == 0:
             return self.copy()
@@ -618,7 +618,7 @@ class CLList(MutableSequence[T]):
         return any(x == value for value in self)
 
     @assert_types(value=int)
-    def __floordiv__(self, value: int) -> list['CLList[T]']:
+    def __floordiv__(self, value: int) -> list['CDLList[T]']:
         if value < 1:
             raise ValueError(f"value must be >= 1, not {value}")
         if value > self.size:
@@ -640,7 +640,7 @@ class CLList(MutableSequence[T]):
         return result
 
     @assert_types(value=int)
-    def __mod__(self, value: int) -> 'CLList[T]':
+    def __mod__(self, value: int) -> 'CDLList[T]':
         if value < 1:
             raise ValueError(f"value must be >= 1, not {value}")
         if value > self.size:
@@ -651,14 +651,14 @@ class CLList(MutableSequence[T]):
         return self.__class__()
 
     @assert_types(value=int)
-    def __divmod__(self, value: int) -> tuple[list['CLList[T]'], 'CLList[T]']:
+    def __divmod__(self, value: int) -> tuple[list['CDLList[T]'], 'CDLList[T]']:
         if value < 1:
             raise ValueError(f"value must be >= 1, not {value}")
         return self // value, self % value
 
     @assert_types(value=Iterable)
-    def __add__(self, other: Iterable[T]) -> 'CLList[T]':
-        """Return a new CLList with items from self and other.
+    def __add__(self, other: Iterable[T]) -> 'CDLList[T]':
+        """Return a new CDLList with items from self and other.
         """
         return self.__class__(chain(self, other))
 
@@ -670,22 +670,22 @@ class CLList(MutableSequence[T]):
     def __ne__(self, __o: Any) -> bool:
         return not self == __o
 
-    def __lt__(self, __o: 'CLList[Any]') -> bool:
+    def __lt__(self, __o: 'CDLList[Any]') -> bool:
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size < __o.size if (self.size and __o.size) else True
 
-    def __le__(self, __o: 'CLList[Any]') -> bool:
+    def __le__(self, __o: 'CDLList[Any]') -> bool:
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size <= __o.size if (self.size and __o.size) else True
 
-    def __gt__(self, __o: 'CLList[Any]') -> bool:
+    def __gt__(self, __o: 'CDLList[Any]') -> bool:
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size > __o.size if (self.size and __o.size) else False
 
-    def __ge__(self, __o: 'CLList[Any]') -> bool:
+    def __ge__(self, __o: 'CDLList[Any]') -> bool:
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size >= __o.size if (self.size and __o.size) else False
@@ -703,7 +703,7 @@ class CLList(MutableSequence[T]):
     __rich_repr__.angular = True    # type: ignore
 
 if __name__ == '__main__':
-    l: CLList[int] = CLList(range(1000))
+    l: CDLList[int] = CDLList(range(1000))
     k = l[5:4:-1]
     q, r = divmod(l, 11)
     m = sorted(l)
