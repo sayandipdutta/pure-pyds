@@ -12,11 +12,13 @@ from typing import (
 )
 
 from .errors import EmptyInstanceHeadAccess, InvalidIntegerSliceError
-from .types import _SupportsComparison
+from .types import _SupportsComparison, MissingType
 from .validate import _validate_integer_slice, assert_types
 
 T = TypeVar("T")
 C = TypeVar("C", bound=_SupportsComparison)
+
+_missing = MissingType
 
 class Node(Generic[T]):
     """Class implementing Node. 
@@ -154,7 +156,10 @@ class CDLList(MutableSequence[T]):
     by setting the head to a Node with the value and both left and right to
     itself, or a sequence of values and initializes the list by setting the
     head to a Node with the first value and both left and right to a Node with
-    the second value and so on. When 
+    the second value and so on. When no values are given, the head attribute is not set.
+    Furthermore, if the sequence is empty, the head attribute is inaccessible.
+    Trying to access head on a empty CDLList instance with raise
+    ds.errors.EmptyInstanceHeadAccess exception.
 
     When the list is empty, i.e., size is 0, there is no head / tail.
 
@@ -182,7 +187,7 @@ class CDLList(MutableSequence[T]):
 
     __slots__ = ('_head', '_size')
     
-    def __init__(self, value: Optional[T | Iterable[T]] = None):
+    def __init__(self, value: T | Iterable[T] | MissingType = _missing):
         """value can be a single value or an iterable of values."""
         self._head: Node[T]
         self._size: int = 0
@@ -192,7 +197,7 @@ class CDLList(MutableSequence[T]):
                 self._head = new.head
                 self._size = new.size
             return
-        if value is not None:
+        if value is not _missing:
             self._head = Node(value)
             self._size += 1
 

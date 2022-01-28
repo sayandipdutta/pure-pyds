@@ -13,3 +13,7 @@ class _SupportsComparison(Protocol):
     def __gt__(self: C, other: C) -> bool: ...
     @abstractmethod
     def __ge__(self: C, other: C) -> bool: ...
+
+class MissingType:
+    '''Class to represent missing types'''
+    pass
