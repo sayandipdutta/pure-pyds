@@ -150,6 +150,12 @@ class CDLList(MutableSequence[T]):
     This class implements a circular doubly linked list
     https://en.wikipedia.org/wiki/Doubly_linked_list#Circular_doubly_linked_lists
 
+    The class constructor takes either a single value and initializes the list
+    by setting the head to a Node with the value and both left and right to
+    itself, or a sequence of values and initializes the list by setting the
+    head to a Node with the first value and both left and right to a Node with
+    the second value and so on. When 
+
     When the list is empty, i.e., size is 0, there is no head / tail.
 
     Usage:
@@ -917,7 +923,7 @@ class CDLList(MutableSequence[T]):
 
         If amount is negative, shift items to left.
         If amount is greater than length of CDLList, take a modulo of by
-        w.r.t self.size, then apply rshift.
+        w.r.t self.size, then apply lshift.
 
         Usage:
             >>> from ds.cdll import CDLList
@@ -958,8 +964,10 @@ class CDLList(MutableSequence[T]):
         returns the CDLList with items shifted by given amount.
 
         Modifies in-place.
+
         If amount is negative, shift items to right.
-        If amount is greater than length of CDLList, return empty CDLList.
+        If amount is greater than length of CDLList, take a modulo of by
+        w.r.t self.size, then apply rshift.
 
         Usage:
             >>> from ds.cdll import CDLList
