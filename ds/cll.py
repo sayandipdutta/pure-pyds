@@ -576,6 +576,54 @@ class CLList(MutableSequence[T]):
             return self or (self << (by % self.size))
         return self
 
+    def __contains__(self, x: Any) -> bool:
+        return any(x == value for value in self)
+
+    @assert_types(value=int)
+    def __floordiv__(self, value: int) -> list['CLList[T]']:
+        if value < 1:
+            raise ValueError(f"value must be >= 1, not {value}")
+        if value > self.size:
+            return [self.__class__()]
+        result = []
+        step = (self.size // value)
+        stop = step * value
+        points = range(0, stop, step)
+        new = self.__class__()
+        for i, val in enumerate(self):
+            if i and i in points:
+                result.append(new)
+                new = self.__class__(val)
+            else:
+                new.append(val)
+            if i + 1 == stop:
+                result.append(new)
+                break
+        return result
+
+    @assert_types(value=int)
+    def __mod__(self, value: int) -> 'CLList[T]':
+        if value < 1:
+            raise ValueError(f"value must be >= 1, not {value}")
+        if value > self.size:
+            return self.copy()
+        rem = self.size % value
+        if rem:
+            return self[-rem:]
+        return self.__class__()
+
+    @assert_types(value=int)
+    def __divmod__(self, value: int) -> tuple[list['CLList[T]'], 'CLList[T]']:
+        if value < 1:
+            raise ValueError(f"value must be >= 1, not {value}")
+        return self // value, self % value
+
+    @assert_types(value=Iterable)
+    def __add__(self, other: Iterable[T]) -> 'CLList[T]':
+        """Return a new CLList with items from self and other.
+        """
+        return self.__class__(chain(self, other))
+
     def __eq__(self, __o: Any) -> bool:
         return all(
             s == __o.peek(i) for i, s in enumerate(self)
