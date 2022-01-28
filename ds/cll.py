@@ -574,6 +574,7 @@ class CLList(MutableSequence[T]):
             return self >> -by
         if by >= self.size:
             return self or (self << (by % self.size))
+        self.head = self.peek(-by, node=True, errors='raise')
         return self
 
     def __contains__(self, x: Any) -> bool:
