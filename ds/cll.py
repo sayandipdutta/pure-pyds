@@ -1,10 +1,10 @@
 from collections.abc import MutableSequence, Iterable
 from typing import (
+    Any,
     Generic, 
     Iterable, 
     Iterator, 
     Literal,
-    SupportsIndex, 
     TypeVar, 
     overload
 )
@@ -42,9 +42,16 @@ class CLList(MutableSequence[T]):
     __slots__ = ('_head', '_size')
     
     def __init__(self, value: T=None):
-        if value is not None:
-            self._head: Node[T] = Node(value)
+        self._head: Node[T]
         self._size: int = 0
+        if isinstance(value, Iterable):
+            new = self.__class__.from_iterable(value)
+            self._head = new._head
+            self._size = new._size
+            return
+        if value is not None:
+            self._head = Node(value)
+            self._size += 1
 
     @classmethod
     @assert_types(iterable=Iterable)
@@ -478,9 +485,73 @@ class CLList(MutableSequence[T]):
         # handle extended slice
         for i in points:
             self.pop(i)
+
+    @assert_types(by=int)
+    def __rshift__(self, by: int) -> 'CLList[T]':
+        """Return a new CLList with items shifted by given amount.
+        If amount is negative, shift items to left.
+        If amount is greater than length of CLList, return empty CLList.
+        """
+        if by == 0:
+            return self.copy()
+        if by < 0:
+            return self << -by
+        if by >= self.size:
+            return self or (self >> (by % self.size))
+        self.head = self.peek(by, node=True, errors='raise')
+        return self
+
+    @assert_types(by=int)
+    def __lshift__(self, by: int) -> 'CLList[T]':
+        """Return a new CLList with items shifted by given amount.
+        If amount is negative, shift items to right.
+        If amount is greater than length of CLList, return empty CLList.
+        """
+        if by == 0:
+            return self.copy()
+        if by < 0:
+            return self >> -by
+        if by >= self.size:
+            return self or (self << (by % self.size))
+        self.tail = self.peek(-by, node=True, errors='raise')
+        return self
+
+    def __eq__(self, __o: Any) -> bool:
+        return all(
+            s == __o.peek(i) for i, s in enumerate(self)
+        )
+
+    def __ne__(self, __o: Any) -> bool:
+        return not self == __o
+
+    def __lt__(self, __o: 'CLList[Any]') -> bool:
+        if not isinstance(__o, type(self)):
+            return NotImplemented
+        return self.size < __o.size if (self.size and __o.size) else True
+
+    def __le__(self, __o: 'CLList[Any]') -> bool:
+        if not isinstance(__o, type(self)):
+            return NotImplemented
+        return self.size <= __o.size if (self.size and __o.size) else True
+
+    def __gt__(self, __o: 'CLList[Any]') -> bool:
+        if not isinstance(__o, type(self)):
+            return NotImplemented
+        return self.size > __o.size if (self.size and __o.size) else False
+
+    def __ge__(self, __o: 'CLList[Any]') -> bool:
+        if not isinstance(__o, type(self)):
+            return NotImplemented
+        return self.size >= __o.size if (self.size and __o.size) else False
         
     def __repr__(self) -> str:
         debug_size = sum(1 for _ in self)
         if (size := self.size) == 0:
             return f'{self.__class__.__name__}(empty, size=0, {debug_size=})'
         return f'{self.__class__.__name__}(head={self.head}, {size=}, {debug_size=})'
+
+    def __rich_repr__(self):
+        yield "empty" if self.size == 0 else ("head", self.head)
+        yield "size", self.size
+
+    __rich_repr__.angular = True    # type: ignore
