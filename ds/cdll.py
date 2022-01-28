@@ -7,7 +7,8 @@ from typing import (
     Iterator, 
     Literal,
     Optional,
-    TypeVar, 
+    TypeVar,
+    cast, 
     overload
 )
 
@@ -18,7 +19,7 @@ from .validate import _validate_integer_slice, assert_types
 T = TypeVar("T")
 C = TypeVar("C", bound=_SupportsComparison)
 
-_missing = MissingType
+_missing = MissingType()
 
 class Node(Generic[T]):
     """Class implementing Node. 
@@ -198,7 +199,7 @@ class CDLList(MutableSequence[T]):
                 self._size = new.size
             return
         if value is not _missing:
-            self._head = Node(value)
+            self._head = Node(cast(T, value))
             self._size += 1
 
     @classmethod
