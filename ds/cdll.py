@@ -435,21 +435,23 @@ class CDLList(MutableSequence[T]):
             Traceback (most recent call last):
                 ...
             IndexError: Index 1 out of range
+            >>> cdll.pop(0)
+            2
             >>> cdll.pop()
             Traceback (most recent call last):
                 ...
             ds.errors.EmptyInstanceHeadAccess: Cannot pop from empty CDLList
             Hint: Try inserting an item first using append()/appendleft()
         """
-        if index < 0:
-            index += self.size
-        if index < 0 or index >= self.size:
-            raise IndexError(f"Index {index} out of range")
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
                 "Cannot pop from empty CDLList",
                 hint = "Try inserting an item first using append()/appendleft()"
             )
+        if index < 0:
+            index += self.size
+        if index < 0 or index >= self.size:
+            raise IndexError(f"Index {index} out of range")
         if self.size == 1:
             val = self.head.value
             self.size = 0
@@ -894,15 +896,16 @@ class CDLList(MutableSequence[T]):
             >>> cdll = CDLList([1, 2, 3, 4, 5, 6, 7])
             >>> del cdll[0]
             >>> cdll
-            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=7)
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=6)
             >>> del cdll[1:3]
             >>> cdll
-            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=5)
+            CDLList(head=Node(value=2, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=4)
             >>> del cdll[:2]
             >>> cdll
-            CDLList(head=Node(value=5, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            CDLList(head=Node(value=6, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=2)
             >>> del cdll[5:4]
-            CDLList(head=Node(value=5, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+            >>> cdll
+            CDLList(head=Node(value=6, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=2)
             >>> del cdll[:]
             >>> cdll
             CDLList(empty, size=0)
