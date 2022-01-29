@@ -1,12 +1,14 @@
-from typing import Any, Callable, ParamSpec, Type, TypeVar
-from types import UnionType
+from functools import wraps
 from inspect import signature
+from types import UnionType
+from typing import Any, Callable, ParamSpec, Type, TypeVar
 
 P = ParamSpec('P')
 R = TypeVar('R')
 
 def assert_types(**type_mappings: Type | UnionType) -> Callable[[Callable[P, R]], Callable[P, R]]:
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             sig = signature(func).bind(*args, **kwargs)
             sig.apply_defaults()
