@@ -918,6 +918,10 @@ class CDLList(MutableSequence[T]):
             return
             
         # handle extended slice
+        # if start index is less than stop index, 
+        # reverse the range to preserve order
+        if points.start < points.stop:
+            points = reversed(points)
         for i in points:
             self.pop(i)
 
