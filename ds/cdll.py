@@ -64,8 +64,8 @@ class Node(Generic[T]):
 
         Args:
             value (T): [description]
-            left (Node[T], optional): [description]. Defaults to None.
-            right (Node[T], optional): [description]. Defaults to None.
+            left (Node[T], optional): Left Node. Defaults to None.
+            right (Node[T], optional): Right Node. Defaults to None.
         """
         self._value: T = value
         self._left: 'Node[T]' = self if left is None else left
@@ -158,7 +158,7 @@ class CDLList(MutableSequence[T]):
     head to a Node with the first value and both left and right to a Node with
     the second value and so on. When no values are given, the head attribute is not set.
     Furthermore, if the sequence is empty, the head attribute is inaccessible.
-    Trying to access head on a empty CDLList instance with raise
+    Trying to access head on a empty CDLList instance will raise
     ds.errors.EmptyInstanceHeadAccess exception.
 
     When the list is empty, i.e., size is 0, there is no head / tail.
@@ -188,7 +188,18 @@ class CDLList(MutableSequence[T]):
     __slots__ = ('_head', '_size')
     
     def __init__(self, value: T | Iterable[T] | MissingType = _missing):
-        """value can be a single value or an iterable of values."""
+        """CLList([value]) -> CDLList[T]
+
+        Creates a CDLList instance. If no value is given, 
+        the head attribute is not set. Trying to access it 
+        on a empty CDLList instance will
+        raise ds.errors.EmptyInstanceHeadAccess exception.
+        
+        Args:
+            value (T | Iterable[T] | MissingType, optional): 
+                value can be a single value or an iterable of values. 
+                Defaults to: _missing.
+        """
         self._head: Node[T]
         self._size: int = 0
         if isinstance(value, Iterable):
@@ -204,7 +215,19 @@ class CDLList(MutableSequence[T]):
     @classmethod
     @assert_types(iterable=Iterable)
     def from_iterable(cls, iterable: Iterable[T]) -> 'CDLList[T]':
-        """Creates a CDLList from an iterable."""
+        """Creates a CDLList from an iterable.
+        
+        Args:
+            iterable (Iterable[T]): iterable of values.
+            
+        Returns:
+            CDLList[T]: CDLList instance.
+            
+        Usage:
+            >>> from ds.cdll import CDLList
+            >>> CDLList.from_iterable([1, 2, 3])
+            CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=3)
+        """
         self = cls()
         for item in iterable:
             self.append(item)

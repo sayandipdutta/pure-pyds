@@ -1,4 +1,7 @@
-from rich import traceback
-
-traceback.install()
-traceback.pretty.install()
+try:
+    from rich import traceback
+except ImportError:
+    pass
+else:
+    traceback.install()
+    traceback.pretty.install()
