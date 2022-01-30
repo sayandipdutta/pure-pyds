@@ -538,12 +538,12 @@ class CDLList(MutableSequence[T]):
             return
         
         ith_node = self.peek(index, node=True, errors='raise')
-        ith_node.left.right = Node(
+        ith_node.left.right = node = Node(
             value, 
             left=ith_node.left, 
             right=ith_node
         )
-        ith_node.left = ith_node.right
+        ith_node.left = node
         self.size += 1
 
     def appendleft(self, value: T):
