@@ -536,17 +536,17 @@ class DLList(MutableSequence[T]):
         if index == 0:
             self.appendleft(value)
             return
-        if index == self.size:
+        if index == self.size - 1:
             self.append(value)
             return
         
         ith_node = self.peek(index, node=True, errors='raise')
-        ith_node.left.right = Node(
+        ith_node.left.right = node = Node(
             value, 
             left=ith_node.left, 
             right=ith_node
         )
-        ith_node.left = ith_node.right
+        ith_node.left = node
         self.size += 1
 
     def appendleft(self, value: T):
@@ -569,16 +569,18 @@ class DLList(MutableSequence[T]):
             [2, 1]
         """
         if self.size == 0:
-            self.head = Node(value)
+            self.head = self.tail = Node(value)
         else:
             node = Node(
                 value, 
-                left=self.head.left, 
+                left=None, 
                 right=self.head
             )
             self.head.left.right = node
             self.head.left = node
             self.head = node
+            if self.size == 1:
+                self.tail = node.right
         self.size += 1
 
     def append(self, value: T):
@@ -599,15 +601,15 @@ class DLList(MutableSequence[T]):
             [1, 2]
         """
         if self.size == 0:
-            self.head = Node(value)
+            self.head = self.tail = Node(value)
         else:
             node = Node(
                 value, 
                 left=self.tail, 
-                right=self.head
+                right=None
             )
             self.tail.right = node
-            self.head.left = node
+            self.tail = node
         self.size += 1
 
     @assert_types(values=Iterable)
@@ -634,18 +636,15 @@ class DLList(MutableSequence[T]):
             return
         if self.size == 0:
             self.head = new.head
+            self.tail = new.tail
             self.size = new.size
             return
-        new.tail.right = self.head
         self.tail.right = new.head
-        self.head.left = new.tail
-        new.head.left = self.tail
+        self.tail = new.tail
         self.size += new.size
-        del new # free memory
 
     def iter_nodes(
             self, 
-            cycle: bool = False, 
             reverse: bool = False
             ) -> Iterator[Node[T]]:
         r"""Iterate over nodes in the list.
@@ -669,13 +668,9 @@ class DLList(MutableSequence[T]):
             return 'Empty DLList'
 
         current = self.tail if reverse else self.head
-        while True:
+        while current is not None:
             yield current
             current = current.left if reverse else current.right    # determine direction
-            if not cycle and current is self.head:                  # break if not cyclic
-                break
-        if reverse:
-            yield self.head
 
     def __iter__(self) -> Iterator[T]:
         r"""Iterate over values in the list.
@@ -865,7 +860,6 @@ class DLList(MutableSequence[T]):
         if step == 1:
             del self[start:stop:step]
             if new.size == 0:
-                del new
                 return
             set_after = self.peek(start - 1, node=True, errors='raise')
             set_until = set_after.right
@@ -874,7 +868,6 @@ class DLList(MutableSequence[T]):
             new.tail.right = set_until
             new.head.left = set_after
             self.size += new.size
-            del new
             return
         
         # handle extended slice
