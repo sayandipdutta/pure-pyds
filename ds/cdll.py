@@ -1,15 +1,7 @@
 from collections.abc import MutableSequence, Iterable
 import doctest
 from itertools import chain
-from typing import (
-    Any,
-    Generic, 
-    Iterator, 
-    Literal,
-    TypeVar,
-    cast, 
-    overload
-)
+from typing import Any, Generic, Iterator, Literal, TypeVar, cast, overload
 
 from .errors import EmptyInstanceHeadAccess, InvalidIntegerSliceError
 from .types import _SupportsComparison, MissingType
@@ -20,9 +12,10 @@ C = TypeVar("C", bound=_SupportsComparison)
 
 _missing = MissingType()
 
+
 class Node(Generic[T]):
-    """Class implementing Node. 
-    
+    """Class implementing Node.
+
     It has three properties:
     - value: T - the value of the node
     - left: Node[T] - the left item of the node
@@ -57,9 +50,10 @@ class Node(Generic[T]):
         >>> node > node.right
         False
     """
-    __slots__ = ('_value', '_left', '_right')
 
-    def __init__(self, value: T, *, left: 'Node[T]' = None, right: 'Node[T]' = None):
+    __slots__ = ("_value", "_left", "_right")
+
+    def __init__(self, value: T, *, left: "Node[T]" = None, right: "Node[T]" = None):
         """Node(value, *[, left, right]) -> Node[T]
 
         Args:
@@ -68,8 +62,8 @@ class Node(Generic[T]):
             right (Node[T], optional): Right Node. Defaults to None.
         """
         self._value: T = value
-        self._left: 'Node[T]' = self if left is None else left
-        self._right: 'Node[T]' = self if right is None else right
+        self._left: "Node[T]" = self if left is None else left
+        self._right: "Node[T]" = self if right is None else right
 
     @property
     def value(self) -> T:
@@ -80,23 +74,23 @@ class Node(Generic[T]):
         self._value = value
 
     @property
-    def left(self) -> 'Node[T]':
+    def left(self) -> "Node[T]":
         return self._left
 
     @left.setter
-    def left(self, left: 'Node[T]'):
+    def left(self, left: "Node[T]"):
         if not isinstance(left, self.__class__) and left is not None:
-            raise TypeError(f'left must be of type {self.__class__.__name__}')
+            raise TypeError(f"left must be of type {self.__class__.__name__}")
         self._left = self if left is None else left
 
     @property
-    def right(self) -> 'Node[T]':
+    def right(self) -> "Node[T]":
         return self._right
 
     @right.setter
-    def right(self, right: 'Node[T]'):
+    def right(self, right: "Node[T]"):
         if not isinstance(right, self.__class__) and right is not None:
-            raise TypeError(f'right must be of type {self.__class__.__name__}')
+            raise TypeError(f"right must be of type {self.__class__.__name__}")
         self._right = self if right is None else right
 
     def __eq__(self, other: Any):
@@ -105,50 +99,50 @@ class Node(Generic[T]):
     def __ne__(self, other: Any):
         return not self.__eq__(other)
 
-    def __lt__(self: 'Node[C]', other: 'Node[C]') -> bool:
+    def __lt__(self: "Node[C]", other: "Node[C]") -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value < other.value
 
-    def __gt__(self: 'Node[C]', other: 'Node[C]') -> bool:
+    def __gt__(self: "Node[C]", other: "Node[C]") -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value > other.value
 
-    def __ge__(self: 'Node[C]', other: 'Node[C]') -> bool:
+    def __ge__(self: "Node[C]", other: "Node[C]") -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value >= other.value
 
-    def __le__(self: 'Node[C]', other: 'Node[C]') -> bool:
+    def __le__(self: "Node[C]", other: "Node[C]") -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value <= other.value
 
     def __rich_repr__(self):
         """Add support for rich representation.
-        
+
         See [1], [2] in CDLL.__rich_repr__() docstring for more details.
         """
-        yield 'value', self.value
-        yield 'left', self.__class__
-        yield 'right', self.__class__
+        yield "value", self.value
+        yield "left", self.__class__
+        yield "right", self.__class__
 
     # See [1], [2] in CDLL.__rich_repr__() docstring for more details.
-    __rich_repr__.angular = True    # type: ignore
+    __rich_repr__.angular = True  # type: ignore
 
     def __repr__(self):
         return (
-            f'{self.__class__.__name__}('
-            + ', '.join(f'{k}={v!r}' for k, v in self.__rich_repr__())
-            + ')'
+            f"{self.__class__.__name__}("
+            + ", ".join(f"{k}={v!r}" for k, v in self.__rich_repr__())
+            + ")"
         )
 
 
 class CDLList(MutableSequence[T]):
     """Class implementing Circular Doubly Linked List.
-    
-    
+
+
     This class implements a circular doubly linked list
     https://en.wikipedia.org/wiki/Doubly_linked_list#Circular_doubly_linked_lists
 
@@ -163,7 +157,7 @@ class CDLList(MutableSequence[T]):
     property which is the defined as the Node left to the head. The tail
     property is also inaccessible when the CDLList is empty. Trying to access
     tail on a empty CDLList instance will raise ds.errors.EmptyInstanceTailAccess
-    exception. The tail property is not settable or deletable. When the list is empty, 
+    exception. The tail property is not settable or deletable. When the list is empty,
     i.e., size is 0, there is no head / tail.
 
     Usage:
@@ -188,19 +182,19 @@ class CDLList(MutableSequence[T]):
         CDLList(head=Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>), size=5)
     """
 
-    __slots__ = ('_head', '_size')
-    
+    __slots__ = ("_head", "_size")
+
     def __init__(self, value: T | Iterable[T] | MissingType = _missing):
         """CLList([value]) -> CDLList[T]
 
-        Creates a CDLList instance. If no value is given, 
-        the head attribute is not set. Trying to access it 
+        Creates a CDLList instance. If no value is given,
+        the head attribute is not set. Trying to access it
         on a empty CDLList instance will
         raise ds.errors.EmptyInstanceHeadAccess exception.
-        
+
         Args:
-            value (T | Iterable[T] | MissingType, optional): 
-                value can be a single value or an iterable of values. 
+            value (T | Iterable[T] | MissingType, optional):
+                value can be a single value or an iterable of values.
                 Defaults to: _missing.
         """
         self._head: Node[T]
@@ -217,15 +211,15 @@ class CDLList(MutableSequence[T]):
 
     @classmethod
     @assert_types(iterable=Iterable)
-    def from_iterable(cls, iterable: Iterable[T]) -> 'CDLList[T]':
+    def from_iterable(cls, iterable: Iterable[T]) -> "CDLList[T]":
         """Creates a CDLList from an iterable.
-        
+
         Args:
             iterable (Iterable[T]): iterable of values.
-            
+
         Returns:
             CDLList[T]: CDLList instance.
-            
+
         Usage:
             >>> from ds.cdll import CDLList
             >>> CDLList.from_iterable([1, 2, 3])
@@ -245,7 +239,7 @@ class CDLList(MutableSequence[T]):
     def size(self, value: int):
         if value < 0:
             raise ValueError("Size must be non-negative")
-        if value == 0 and hasattr(self, '_head'):
+        if value == 0 and hasattr(self, "_head"):
             del self._head
         self._size = value
 
@@ -255,8 +249,7 @@ class CDLList(MutableSequence[T]):
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
                 "Cannot get head of empty CDLList",
-                hint = "Try inserting an item first "
-                       "using append()/appendleft()."
+                hint="Try inserting an item first " "using append()/appendleft().",
             )
         return self._head
 
@@ -272,14 +265,13 @@ class CDLList(MutableSequence[T]):
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
                 "Cannot get tail of empty CDLList",
-                hint = "Try inserting an item first "
-                       "using append()/appendleft()."
+                hint="Try inserting an item first " "using append()/appendleft().",
             )
         return self.head.left
 
     def clear(self) -> None:
         """Clears the CDLList. i.e. removes all items.
-        
+
         Usage:
             >>> from ds.cdll import CDLList
             >>> cdll = CDLList([1, 2, 3])
@@ -291,9 +283,9 @@ class CDLList(MutableSequence[T]):
         """
         self.size = 0
 
-    def copy(self) -> 'CDLList[T]':
+    def copy(self) -> "CDLList[T]":
         """Returns a shallow copy of the CDLList.
-        
+
         Usage:
             >>> from ds.cdll import CDLList
             >>> cdll = CDLList([1, 2, 3])
@@ -309,7 +301,7 @@ class CDLList(MutableSequence[T]):
 
     def __len__(self) -> int:
         """Returns the size, i.e. length of the CDLList.
-        
+
         Usage:
             >>> from ds.cdll import CDLList
             >>> cdll = CDLList([1, 2, 3])
@@ -322,13 +314,8 @@ class CDLList(MutableSequence[T]):
 
     @overload
     def peek(
-            self, 
-            index: int, 
-            /, 
-            *, 
-            node: Literal[True], 
-            errors: Literal['raise']
-            ) -> Node[T]:
+        self, index: int, /, *, node: Literal[True], errors: Literal["raise"]
+    ) -> Node[T]:
         """If node is True, return Node at given index.
         If errors is 'raise':
             If index is out of bounds raises IndexError.
@@ -337,13 +324,8 @@ class CDLList(MutableSequence[T]):
 
     @overload
     def peek(
-            self, 
-            index: int, 
-            /, 
-            *, 
-            node: Literal[False], 
-            errors: Literal['raise']
-            ) -> T:
+        self, index: int, /, *, node: Literal[False], errors: Literal["raise"]
+    ) -> T:
         """If node is False, return value at given index.
         If errors is 'raise':
             If index is out of bounds raises IndexError.
@@ -352,13 +334,8 @@ class CDLList(MutableSequence[T]):
 
     @overload
     def peek(
-            self, 
-            index: int, 
-            /, 
-            *, 
-            node: Literal[True], 
-            errors: Literal['ignore']
-            ) -> Node[T] | None:
+        self, index: int, /, *, node: Literal[True], errors: Literal["ignore"]
+    ) -> Node[T] | None:
         """If node is True, return Node at given index.
         If errors is 'ignore':
             If index is out of bounds return None.
@@ -367,13 +344,8 @@ class CDLList(MutableSequence[T]):
 
     @overload
     def peek(
-            self, 
-            index: int, 
-            /, 
-            *, 
-            node: Literal[False], 
-            errors: Literal['ignore']
-            ) -> T | None:
+        self, index: int, /, *, node: Literal[False], errors: Literal["ignore"]
+    ) -> T | None:
         """If node is False, return value at given index.
         If errors is 'ignore':
             If index is out of bounds return None.
@@ -382,13 +354,13 @@ class CDLList(MutableSequence[T]):
 
     @assert_types(index=int)
     def peek(
-            self, 
-            index: int, 
-            /, 
-            *, 
-            node: bool=False, 
-            errors: Literal['ignore', 'raise'] = 'ignore'
-            ) -> T | Node[T] | None:
+        self,
+        index: int,
+        /,
+        *,
+        node: bool = False,
+        errors: Literal["ignore", "raise"] = "ignore",
+    ) -> T | Node[T] | None:
         """Return item at given index, or None if index is out of range.
         If node is True, return the node at the given index.
         If errors=='raise', raise IndexError if index is out of range.
@@ -414,22 +386,21 @@ class CDLList(MutableSequence[T]):
             True
         """
 
-        if index < 0:               # Handle negative index
+        if index < 0:  # Handle negative index
             index += self.size
         if index < 0 or index >= self.size:
-            if errors == 'ignore':
+            if errors == "ignore":
                 return None
-            elif errors == 'raise':
+            elif errors == "raise":
                 raise IndexError(f"Index {index} out of range")
             else:
                 raise ValueError(
-                    f"Unknown errors value: {errors}. "
-                    "Must be 'raise' or 'ignore'"
+                    f"Unknown errors value: {errors}. " "Must be 'raise' or 'ignore'"
                 )
 
         # determine shortest direction to index
-        if (reverse := (index > self.size//2)):
-            index = self.size - index - 1       # adjust index
+        if reverse := (index > self.size // 2):
+            index = self.size - index - 1  # adjust index
         for i, i_node in enumerate(self.iter_nodes(reverse=reverse)):
             if i == index:
                 return i_node if node else i_node.value
@@ -472,7 +443,7 @@ class CDLList(MutableSequence[T]):
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
                 "Cannot pop from empty CDLList",
-                hint = "Try inserting an item first using append()/appendleft()"
+                hint="Try inserting an item first using append()/appendleft()",
             )
         if index < 0:
             index += self.size
@@ -484,7 +455,7 @@ class CDLList(MutableSequence[T]):
             return val
         if index == 0:
             return self.popleft()
-        ith_node = self.peek(index, node=True, errors='raise')
+        ith_node = self.peek(index, node=True, errors="raise")
         ith_node.left.right = ith_node.right
         ith_node.right.left = ith_node.left
         self.size -= 1
@@ -512,7 +483,7 @@ class CDLList(MutableSequence[T]):
         if self.size == 0:
             raise EmptyInstanceHeadAccess(
                 "Cannot pop from empty CDLList",
-                hint = "Try inserting an item first using append()/appendleft()"
+                hint="Try inserting an item first using append()/appendleft()",
             )
         val = self.head.value
         if self.size == 1:
@@ -562,13 +533,9 @@ class CDLList(MutableSequence[T]):
         if index == self.size:
             self.append(value)
             return
-        
-        ith_node = self.peek(index, node=True, errors='raise')
-        ith_node.left.right = Node(
-            value, 
-            left=ith_node.left, 
-            right=ith_node
-        )
+
+        ith_node = self.peek(index, node=True, errors="raise")
+        ith_node.left.right = Node(value, left=ith_node.left, right=ith_node)
         ith_node.left = ith_node.right
         self.size += 1
 
@@ -594,11 +561,7 @@ class CDLList(MutableSequence[T]):
         if self.size == 0:
             self.head = Node(value)
         else:
-            node = Node(
-                value, 
-                left=self.head.left, 
-                right=self.head
-            )
+            node = Node(value, left=self.head.left, right=self.head)
             self.head.left.right = node
             self.head.left = node
             self.head = node
@@ -624,11 +587,7 @@ class CDLList(MutableSequence[T]):
         if self.size == 0:
             self.head = Node(value)
         else:
-            node = Node(
-                value, 
-                left=self.tail, 
-                right=self.head
-            )
+            node = Node(value, left=self.tail, right=self.head)
             self.tail.right = node
             self.head.left = node
         self.size += 1
@@ -651,7 +610,7 @@ class CDLList(MutableSequence[T]):
             >>> list(cdll)
             [1, 2, 3, 4, 5, 6]
         """
-        
+
         new = self.__class__.from_iterable(values)
         if new.size == 0:
             return
@@ -664,13 +623,11 @@ class CDLList(MutableSequence[T]):
         self.head.left = new.tail
         new.head.left = self.tail
         self.size += new.size
-        del new # free memory
+        del new  # free memory
 
     def iter_nodes(
-            self, 
-            cycle: bool = False, 
-            reverse: bool = False
-            ) -> Iterator[Node[T]]:
+        self, cycle: bool = False, reverse: bool = False
+    ) -> Iterator[Node[T]]:
         r"""Iterate over nodes in the list.
 
         If cycle is True, iterate over nodes in a cycle. (default: False)
@@ -689,13 +646,13 @@ class CDLList(MutableSequence[T]):
             Node(value=1, left=<class 'ds.cdll.Node'>, right=<class 'ds.cdll.Node'>)
         """
         if self.size == 0:
-            return 'Empty CDLList'
+            return "Empty CDLList"
 
         current = self.tail if reverse else self.head
         while True:
             yield current
-            current = current.left if reverse else current.right    # determine direction
-            if not cycle and current is self.head:                  # break if not cyclic
+            current = current.left if reverse else current.right  # determine direction
+            if not cycle and current is self.head:  # break if not cyclic
                 break
         if reverse:
             yield self.head
@@ -728,6 +685,12 @@ class CDLList(MutableSequence[T]):
         for node in self.iter_nodes(reverse=True):
             yield node.value
 
+    def values(self) -> list[T]:
+        """
+        Return a list of values stored in CDLLists object.
+        """
+        return list(iter(self))
+
     @overload
     def __getitem__(self, index: int) -> T:
         """If index is int, return item at given index.
@@ -735,16 +698,16 @@ class CDLList(MutableSequence[T]):
         """
 
     @overload
-    def __getitem__(self, index: slice) -> 'CDLList[T]':
+    def __getitem__(self, index: slice) -> "CDLList[T]":
         """If index is slice, return a new CDLList with items in given range.
         If slice is not a valid integer slice, raise InvalidIntegerSliceError.
         """
 
-    @assert_types(index = int | slice)
+    @assert_types(index=int | slice)
     def __getitem__(self, index):
         """
         Return item(s) at given index(es).
-        
+
         If index is int, return item at given index.
         If index is out of range, raise IndexError.
         If index is slice, return a new CDLList with items in given range.
@@ -782,24 +745,21 @@ class CDLList(MutableSequence[T]):
 
         if isinstance(index, int):
             try:
-                return self.peek(index, node=False, errors='raise')
+                return self.peek(index, node=False, errors="raise")
             except IndexError:
                 raise IndexError(
-                    f"{index=} out of range, "
-                    f"for CDLList of {len(self)=} items"
+                    f"{index=} out of range, " f"for CDLList of {len(self)=} items"
                 )
-        
+
         # slice
         err = _validate_integer_slice(index)
         if err is not None:
             raise InvalidIntegerSliceError(orig=err) from None
 
         start, stop, step = index.indices(self.size)
-        
-        return self.__class__.from_iterable(
-                self[i] for i in range(start, stop, step)
-            )
-    
+
+        return self.__class__.from_iterable(self[i] for i in range(start, stop, step))
+
     @overload
     def __setitem__(self, index: int, value: T):
         """If index is int, set item at given index to value.
@@ -809,7 +769,7 @@ class CDLList(MutableSequence[T]):
     @overload
     def __setitem__(self, index: slice, value: Iterable[T]):
         """If index is slice, set items in given range to values.
-        If extended slice length is greater than value length, 
+        If extended slice length is greater than value length,
         raise ValueError.
         """
 
@@ -857,7 +817,7 @@ class CDLList(MutableSequence[T]):
         # breakpoint()
         if isinstance(index, int):
             try:
-                self.peek(index, node=True, errors='raise').value = value
+                self.peek(index, node=True, errors="raise").value = value
                 return
             except (IndexError, ValueError) as exc:
                 # @TODO: add logging
@@ -872,7 +832,7 @@ class CDLList(MutableSequence[T]):
         slice_size = len(points)
         start, stop, step = points.start, points.stop, points.step
         new = self.__class__.from_iterable(value)
-        
+
         if slice_size == self.size:
             if step < 0 and new.size != self.size:
                 raise ValueError(
@@ -884,13 +844,13 @@ class CDLList(MutableSequence[T]):
                 value = reversed(value)
             self.extend(value)
             return
-        
+
         if step == 1:
             del self[start:stop:step]
             if new.size == 0:
                 del new
                 return
-            set_after = self.peek(start - 1, node=True, errors='raise')
+            set_after = self.peek(start - 1, node=True, errors="raise")
             set_until = set_after.right
             set_after.right = new.head
             set_until.left = new.tail
@@ -899,18 +859,18 @@ class CDLList(MutableSequence[T]):
             self.size += new.size
             del new
             return
-        
+
         # handle extended slice
         if slice_size != len(new):
             raise ValueError(
                 f"attempt to assign sequence of size {len(new)} "
                 f"to extended slice of size {slice_size}"
             )
-        
+
         for i, value in zip(points, value, strict=True):
             self[i] = value
 
-    @assert_types(index = int | slice)
+    @assert_types(index=int | slice)
     def __delitem__(self, index: int | slice):
         """If index is int, delete item at given index.
         If index is out of range, raise IndexError.
@@ -963,8 +923,8 @@ class CDLList(MutableSequence[T]):
 
         if step == 1 or step == -1:
             start, stop = (start, stop - 1) if step == 1 else (stop + 1, start)
-            del_from = self.peek(start, node=True, errors='raise')
-            del_till = self.peek(stop, node=True, errors='raise')
+            del_from = self.peek(start, node=True, errors="raise")
+            del_till = self.peek(stop, node=True, errors="raise")
             del_from.left.right = del_till.right
             del_till.right.left = del_from.left
             self.size -= slice_size
@@ -973,9 +933,9 @@ class CDLList(MutableSequence[T]):
             if 0 in points and self.size > 0:
                 self.head = del_till.right
             return
-            
+
         # handle extended slice
-        # if start index is less than stop index, 
+        # if start index is less than stop index,
         # reverse the range to preserve order
         preserve_order = reversed if start < stop else lambda x: x
         # if points.start < points.stop:
@@ -984,8 +944,8 @@ class CDLList(MutableSequence[T]):
             self.pop(i)
 
     @assert_types(by=int)
-    def __rshift__(self, by: int) -> 'CDLList[T]':
-        """Moves head to right by given amount, 
+    def __rshift__(self, by: int) -> "CDLList[T]":
+        """Moves head to right by given amount,
         returns the CDLList with items shifted by given amount.
 
         Modifies in-place.
@@ -1024,11 +984,11 @@ class CDLList(MutableSequence[T]):
         # if shift is greater than half length, shift left by length - shift
         if by > self.size // 2:
             return self << (self.size - by)
-        self.head = self.peek(by, node=True, errors='raise')
+        self.head = self.peek(by, node=True, errors="raise")
         return self
 
     @assert_types(by=int)
-    def __lshift__(self, by: int) -> 'CDLList[T]':
+    def __lshift__(self, by: int) -> "CDLList[T]":
         """Moves head to left by given amount,
         returns the CDLList with items shifted by given amount.
 
@@ -1068,12 +1028,12 @@ class CDLList(MutableSequence[T]):
         # if shift is greater than half length, shift right by length - shift
         if by > self.size // 2:
             return self >> (self.size - by)
-        self.head = self.peek(-by, node=True, errors='raise')
+        self.head = self.peek(-by, node=True, errors="raise")
         return self
 
     def __contains__(self, x: Any) -> bool:
         """Check if value in CDLList.
-        
+
         Usage:
             >>> from ds.cdll import CDLList
             >>> cdll = CDLList([1, 2, 3])
@@ -1085,13 +1045,13 @@ class CDLList(MutableSequence[T]):
         return any(x == value for value in self)
 
     @assert_types(value=int)
-    def __floordiv__(self, value: int) -> list['CDLList[T]']:
-        """Returns a list of equally size CDLList objects, 
-        each containing a slice of self. Number of CDLLists 
+    def __floordiv__(self, value: int) -> list["CDLList[T]"]:
+        """Returns a list of equally size CDLList objects,
+        each containing a slice of self. Number of CDLLists
         returned is equal to value.
 
         If value < 1, raises ValueError.
-        
+
         Usage:
             >>> from ds.cdll import CDLList
             >>> cdll = CDLList([1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -1111,11 +1071,9 @@ class CDLList(MutableSequence[T]):
         if value < 1:
             raise ValueError(f"value must be >= 1, not {value}")
         if value > self.size:
-            return [
-                self.__class__() for _ in range(value)
-            ]
+            return [self.__class__() for _ in range(value)]
         result = []
-        step = (self.size // value)
+        step = self.size // value
         stop = step * value
         points = range(0, stop, step)
         new = self.__class__()
@@ -1131,7 +1089,7 @@ class CDLList(MutableSequence[T]):
         return result
 
     @assert_types(value=int)
-    def __mod__(self, value: int) -> 'CDLList[T]':
+    def __mod__(self, value: int) -> "CDLList[T]":
         """Returns a CDLList containing a slice of self containing
         last n elements, where n == self.size % value.
 
@@ -1159,7 +1117,7 @@ class CDLList(MutableSequence[T]):
         return self.__class__()
 
     @assert_types(value=int)
-    def __divmod__(self, value: int) -> tuple[list['CDLList[T]'], 'CDLList[T]']:
+    def __divmod__(self, value: int) -> tuple[list["CDLList[T]"], "CDLList[T]"]:
         """Returns a tuple containing a two elements:
         1. self // value
         2. self % value
@@ -1189,7 +1147,7 @@ class CDLList(MutableSequence[T]):
         return self // value, self % value
 
     @assert_types(other=Iterable)
-    def __add__(self, other: Iterable[T]) -> 'CDLList[T]':
+    def __add__(self, other: Iterable[T]) -> "CDLList[T]":
         """Return a new CDLList with items from self and other.
 
         Usage:
@@ -1208,12 +1166,10 @@ class CDLList(MutableSequence[T]):
             return (
                 isinstance(other, CDLList)
                 and self.size == other.size
-                and all(
-                    s == o for s, o in zip(self, other, strict=True)
-                )
+                and all(s == o for s, o in zip(self, other, strict=True))
             )
         except ValueError:
-            # this handles cases where 
+            # this handles cases where
             # other instance nodes are not linked properly
             # @TODO: add logging, add warning
             return False
@@ -1222,40 +1178,42 @@ class CDLList(MutableSequence[T]):
         """Return True if self and other are not equal, False otherwise."""
         return not self == __o
 
-    def __lt__(self, __o: 'CDLList[Any]') -> bool:
+    def __lt__(self, __o: "CDLList[Any]") -> bool:
         """Return True if self is less than other, False otherwise."""
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size < __o.size if (self.size and __o.size) else True
 
-    def __le__(self, __o: 'CDLList[Any]') -> bool:
+    def __le__(self, __o: "CDLList[Any]") -> bool:
         """Return True if self is less than or equal to other, False otherwise."""
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size <= __o.size if (self.size and __o.size) else True
 
-    def __gt__(self, __o: 'CDLList[Any]') -> bool:
+    def __gt__(self, __o: "CDLList[Any]") -> bool:
         """Return True if self is greater than other, False otherwise."""
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size > __o.size if (self.size and __o.size) else False
 
-    def __ge__(self, __o: 'CDLList[Any]') -> bool:
+    def __ge__(self, __o: "CDLList[Any]") -> bool:
         """Return True if self is greater than or equal to other, False otherwise."""
         if not isinstance(__o, type(self)):
             return NotImplemented
         return self.size >= __o.size if (self.size and __o.size) else False
-        
+
     def __repr__(self) -> str:
         debug_size = sum(1 for _ in self)
         if (size := self.size) == 0:
-            return f'{self.__class__.__name__}(empty, size=0)' #, {debug_size=})'
-        return f'{self.__class__.__name__}(head={self.head}, {size=})' #, {debug_size=})'
+            return f"{self.__class__.__name__}(empty, size=0)"  # , {debug_size=})'
+        return (
+            f"{self.__class__.__name__}(head={self.head}, {size=})"  # , {debug_size=})'
+        )
 
     def __rich_repr__(self):
         """Add repr option for rich display.
 
-        Reference: 
+        Reference:
         1. https://github.com/willmcgugan/rich/tree/master/rich
         2. https://rich.readthedocs.io/en/stable/pretty.html#rich-repr-protocol
         """
@@ -1263,11 +1221,12 @@ class CDLList(MutableSequence[T]):
         yield "size", self.size
 
     # See: [1], [2] in __rich_repr__ docstring for more info
-    __rich_repr__.angular = True    # type: ignore
+    __rich_repr__.angular = True  # type: ignore
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     l: CDLList[int] = CDLList(range(1000))
     k = l[5:4:-1]
     q, r = divmod(l, 11)
     m = sorted(l)
-    doctest.testmod(optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
+    doctest.testmod(optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE)
